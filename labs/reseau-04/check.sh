@@ -9,6 +9,7 @@ expect_ok "la configuration du pare-feu (/etc/nftables.conf) est valide" nft -c 
 expect_ok "le pare-feu est chargé au démarrage (service nftables activé)" systemctl is-enabled --quiet nftables
 
 # On recharge le pare-feu depuis sa configuration, comme au démarrage.
+systemctl reset-failed nftables &>/dev/null || true
 systemctl restart nftables &>/dev/null || true
 
 alice() { ip netns exec poste-alice "$@"; }

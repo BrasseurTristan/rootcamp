@@ -12,7 +12,10 @@ if [[ $(sysctl -n net.ipv4.ip_forward) == 1 ]]; then
 else
   ko "le serveur route les paquets entre ses réseaux"
 fi
-if grep -hsE '^[[:space:]]*net\.ipv4\.ip_forward[[:space:]]*=[[:space:]]*1' /etc/sysctl.conf /etc/sysctl.d/*.conf | grep -q .; then
+# (Debian 13 n'a plus de /etc/sysctl.conf : on lit ce qui existe.)
+persistent=$(cat /etc/sysctl.conf /etc/sysctl.d/*.conf 2>/dev/null \
+  | grep -E '^[[:space:]]*net\.ipv4\.ip_forward[[:space:]]*=[[:space:]]*1' || true)
+if [[ -n $persistent ]]; then
   ok "le routage restera actif après un redémarrage"
 else
   ko "le routage restera actif après un redémarrage"
