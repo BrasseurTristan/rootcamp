@@ -1,7 +1,7 @@
 # 02 · Utilisateurs et permissions
 
 !!! note "Fiche à rédiger"
-    Cette fiche s'écrit **après** avoir fait le lab `permissions-01`, avec tes
+    Cette fiche s'écrit **après** avoir fait les labs du module, avec tes
     propres mots. Les questions ci-dessous servent de fil conducteur :
     remplace-les par tes explications au fur et à mesure.
 
@@ -30,6 +30,21 @@
 - Pourquoi un utilisateur doit-il se reconnecter après avoir été ajouté à un
   groupe ?
 
+## Dossiers partagés
+
+- Pourquoi un fichier créé par alice n'est-il pas modifiable par bob, même
+  dans un dossier du groupe ? Que fait l'umask ?
+- Que change le bit setgid posé sur un dossier ?
+- Qu'est-ce qu'une ACL, et une ACL *par défaut* ? Pourquoi est-ce plus fiable
+  que de changer l'umask ?
+
+## sudo et le moindre privilège
+
+- Comment se lit une ligne de `/etc/sudoers` ?
+- Pourquoi toujours passer par `visudo` ?
+- Pourquoi autoriser une seule commande plutôt que `ALL` ? Quelles commandes
+  sont dangereuses à autoriser ?
+
 ## Les pièges
 
 - Pourquoi `chmod 777` n'est jamais une bonne solution ?
@@ -40,3 +55,5 @@
 | Lab | Niveau | Sujet |
 |-----|--------|-------|
 | `permissions-01` | débutant | Le dossier partagé de la compta |
+| `permissions-02` | intermédiaire | Les fichiers verrouillés de la compta (setgid, ACL) |
+| `permissions-03` | intermédiaire | Le compte de déploiement tout-puissant (sudo) |
