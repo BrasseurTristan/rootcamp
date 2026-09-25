@@ -1,0 +1,5 @@
+title: Le serveur qui ne route pas
+module: 06-reseau
+level: intermédiaire
+duration: 25 min
+packages: iproute2 netcat-openbsd iputils-ping tcpdump
