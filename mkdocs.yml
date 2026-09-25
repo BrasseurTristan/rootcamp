@@ -43,5 +43,6 @@ nav:
   - Démarrer: demarrer.md
   - Le parcours: parcours.md
   - Fiches:
+      - 01 · Shell et arborescence: fiches/01-shell-arborescence.md
       - 02 · Utilisateurs et permissions: fiches/02-utilisateurs-permissions.md
   - Contribuer: contribuer.md
