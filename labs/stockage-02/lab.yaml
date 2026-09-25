@@ -1,0 +1,5 @@
+title: Le nouveau disque
+module: 05-stockage
+level: intermédiaire
+duration: 30 min
+packages: e2fsprogs fdisk
