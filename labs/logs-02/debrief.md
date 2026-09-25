@@ -39,6 +39,9 @@ POURQUOI ÇA MARCHE
 À RETENIR
 
   - logrotate -d pour vérifier, logrotate -f pour forcer.
+  - delaycompress laisse la dernière archive (app.log.1) non compressée
+    jusqu'à la rotation suivante : pratique si l'appli y écrit encore
+    quelques lignes, ou pour la consulter facilement.
   - Directives courantes : daily/weekly, rotate N, compress,
     delaycompress, missingok, notifempty, copytruncate, postrotate.
   - Un log qui n'est plus archivé finit toujours par remplir le disque

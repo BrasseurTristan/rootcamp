@@ -13,7 +13,7 @@ OBJECTIF
   - le log est archivé chaque jour, on garde 7 archives compressées
   - après une rotation, l'application continue d'écrire normalement
     dans le nouveau app.log (sans qu'on ait à la redémarrer à la main)
-  - le gros log actuel est archivé (et compressé)
+  - le gros log actuel est archivé
 
 POUR TESTER
 
