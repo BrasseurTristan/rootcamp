@@ -9,7 +9,8 @@ dir=/var/log/facturation-app
 systemctl is-active --quiet facturation-journal || systemctl start facturation-journal
 
 state=$(mktemp)
-if logrotate -d -s "$state" "$conf" 2>&1 | grep -qiE '^error|: error'; then
+simulation=$(logrotate -d -s "$state" "$conf" 2>&1 || true)
+if grep -qiE '^error|: error' <<<"$simulation"; then
   ko "la configuration logrotate est valide (logrotate -d)"
 else
   ok "la configuration logrotate est valide (logrotate -d)"
