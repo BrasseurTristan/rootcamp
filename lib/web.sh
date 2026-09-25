@@ -4,7 +4,7 @@
 # web_site <nom> : active le site /etc/nginx/sites-available/<nom> et désactive
 # les autres sites des labs (et la page par défaut de Debian).
 web_site() {
-  rm -f /etc/nginx/sites-enabled/{default,compta,appli,compta-tls}
+  rm -f /etc/nginx/sites-enabled/{default,compta,appli,compta-tls,carnet}
   ln -sf "/etc/nginx/sites-available/$1" "/etc/nginx/sites-enabled/$1"
   nginx -t -q
   systemctl enable nginx &>/dev/null || true
