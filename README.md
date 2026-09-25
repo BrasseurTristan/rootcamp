@@ -57,7 +57,7 @@ curl -fsSL https://raw.githubusercontent.com/BrasseurTristan/rootcamp/main/insta
 
 ```
 bin/rootcamp      l'outil en ligne de commande
-lib/lab.sh        fonctions partagées par les labs
+lib/              fonctions partagées par les labs (voir CONTRIBUTING.md)
 labs/<lab>/       un dossier par lab (voir CONTRIBUTING.md)
 docs/             le site des fiches (MkDocs)
 tests/            tests automatiques des labs

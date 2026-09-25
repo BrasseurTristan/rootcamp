@@ -35,4 +35,5 @@ if (( after > before && after < 10000000 )); then
 else
   ko "après la rotation, l'application continue d'écrire dans un app.log tout neuf"
 fi
+
 rc_result
