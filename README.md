@@ -15,6 +15,21 @@ $ rootcamp check                  # vérifie ta solution
 $ rootcamp debrief                # ce qui était cassé et pourquoi
 ```
 
+## Le parcours
+
+| # | Module | Labs |
+|---|--------|------|
+| 01 | Shell et arborescence | `shell-01` à `03` |
+| 02 | Utilisateurs et permissions | `permissions-01` à `03` |
+| 03 | Processus et systemd | `systemd-01`, `systemd-02`, `processus-01` |
+| 04 | Paquets | `paquets-01` à `03` |
+| 05 | Stockage | `stockage-01` à `03` |
+| 06 | Réseau | `reseau-01` à `04` |
+| 07 | SSH | `ssh-01` à `03` |
+| 08 | Logs et diagnostic | `logs-01` à `03` |
+| 09 | Serveur web | `web-01` à `03` |
+| 10 | Projet final | `final-01`, `final-02` |
+
 ## Démarrage rapide
 
 Il te faut [Vagrant](https://developer.hashicorp.com/vagrant/install) et un

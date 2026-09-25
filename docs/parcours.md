@@ -15,4 +15,4 @@ bagage.
 | 07 | [SSH](fiches/07-ssh.md) | Clés, durcissement, tunnels | `ssh-01` à `03` |
 | 08 | [Logs et diagnostic](fiches/08-logs-diagnostic.md) | Une méthode pour enquêter sur une panne | `logs-01` à `03` |
 | 09 | [Serveur web](fiches/09-serveur-web.md) | nginx, reverse proxy, TLS | `web-01` à `03` |
-| 10 | Projet final | Monter un serveur de A à Z, puis résoudre une série de pannes | à venir |
+| 10 | [Projet final](fiches/10-projet-final.md) | Monter un serveur de A à Z, puis résoudre une série de pannes | `final-01`, `final-02` |
