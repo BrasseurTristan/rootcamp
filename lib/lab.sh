@@ -31,14 +31,21 @@ rc_user() {
   _rc_own "user:$u"
 }
 
-# rc_kill_user <nom> : tue tous les processus d'un utilisateur.
+# rc_kill_user <nom> : tue tous les processus d'un utilisateur. On recommence
+# tant qu'il en reste : un processus peut en lancer un autre pendant le ménage.
 rc_kill_user() {
-  local uid p
-  uid=$(id -u "$1") || return 0
-  for p in /proc/[0-9]*; do
-    [[ $(stat -c %u "$p" 2>/dev/null) == "$uid" ]] && kill -KILL "${p#/proc/}" 2>/dev/null
+  local uid p found _
+  uid=$(id -u "$1" 2>/dev/null) || return 0
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    found=0
+    for p in /proc/[0-9]*; do
+      if [[ $(stat -c %u "$p" 2>/dev/null) == "$uid" ]]; then
+        kill -KILL "${p#/proc/}" 2>/dev/null && found=1
+      fi
+    done
+    (( found )) || return 0
+    sleep 0.2
   done
-  sleep 0.2
 }
 
 # rc_group <nom> : (re)crée un groupe de lab vide.

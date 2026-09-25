@@ -14,8 +14,9 @@ export RC_STATE
 RC_STATE=$(mktemp -d -p /var/tmp)   # pas /tmp : c'est un tmpfs monté au démarrage
 failures=0
 
+failed_labs=()
 pass() { echo "  ✓ $*"; }
-fail() { echo "  ✗ $*"; failures=$(( failures + 1 )); }
+fail() { echo "  ✗ $*"; failures=$(( failures + 1 )); failed_labs+=("$lab : $*"); }
 
 for solution in tests/solutions/*.sh; do
   [[ $solution == *.wrong-*.sh ]] && continue
@@ -35,7 +36,12 @@ for solution in tests/solutions/*.sh; do
 
   rootcamp reset >/dev/null
   bash "$solution"
-  if rootcamp check; then pass "la solution est acceptée"; else fail "la solution est refusée"; fi
+  if out=$(rootcamp check 2>&1); then
+    pass "la solution est acceptée"
+  else
+    fail "la solution est refusée"
+    while IFS= read -r line; do echo "      $line"; done <<<"$out"
+  fi
 
   # Un reset doit remettre le lab dans son état cassé.
   rootcamp reset >/dev/null
@@ -43,5 +49,9 @@ for solution in tests/solutions/*.sh; do
 done
 
 echo
-if (( failures )); then echo "$failures échec(s)"; exit 1; fi
+if (( failures )); then
+  echo "$failures échec(s) :"
+  printf '  - %s\n' "${failed_labs[@]}"
+  exit 1
+fi
 echo "Tous les labs passent."
