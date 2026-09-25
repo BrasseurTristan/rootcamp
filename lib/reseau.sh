@@ -54,7 +54,9 @@ reseau_ecoute() { ss -Htln "sport = :$1" | grep -q .; }
 # les autres labs.
 reseau_parefeu_ouvert() {
   command -v nft >/dev/null || return 0
-  grep -qs 'table inet filtre' /etc/nftables.conf || nft list tables 2>/dev/null | grep -qw filtre || return 0
+  local tables
+  tables=$(nft list tables 2>/dev/null || true)
+  grep -qs 'table inet filtre' /etc/nftables.conf || grep -qw filtre <<<"$tables" || return 0
   cat > /etc/nftables.conf <<'NFT'
 #!/usr/sbin/nft -f
 

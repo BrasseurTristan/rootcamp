@@ -19,7 +19,8 @@ expect_fail "depuis le poste d'Alice, la base de données est inaccessible (port
   alice nc -z -w 2 10.10.0.1 3306
 expect_fail "depuis le poste d'Alice, les autres ports restent fermés (ex. 9090)" \
   alice nc -z -w 2 10.10.0.1 9090
-if nft list ruleset | grep -qE 'dport (22|ssh|\{[^}]*\b(22|ssh)\b[^}]*\}).*accept'; then
+rules=$(nft list ruleset 2>/dev/null || true)
+if grep -qE 'dport (22|ssh|\{[^}]*\b(22|ssh)\b[^}]*\}).*accept' <<<"$rules"; then
   ok "SSH est toujours autorisé (sinon tu te couperais l'accès !)"
 else
   ko "SSH est toujours autorisé (sinon tu te couperais l'accès !)"
