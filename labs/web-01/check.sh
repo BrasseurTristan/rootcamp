@@ -14,7 +14,8 @@ else
   ko "http://localhost/ répond (code $code)"
 fi
 expect_ok "la page affichée est l'Espace Compta" sh -c 'curl -fsS --max-time 5 http://localhost/ | grep -q "Espace Compta"'
-if nginx -T 2>/dev/null | grep -qE '^[[:space:]]*root[[:space:]]+/var/www/compta/?;'; then
+config=$(nginx -T 2>/dev/null || true)
+if grep -qE '^[[:space:]]*root[[:space:]]+/var/www/compta/?;' <<<"$config"; then
   ok "le site est servi depuis /var/www/compta"
 else
   ko "le site est servi depuis /var/www/compta (règle de l'équipe)"
