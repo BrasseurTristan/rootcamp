@@ -5,6 +5,9 @@
 #   docker exec rootcamp bash /opt/rootcamp/tests/run-labs.sh
 FROM debian:trixie
 ENV container=docker
+# Pas de udev dans le conteneur : LVM (device-mapper) crée lui-même les
+# périphériques /dev/<vg>/<lv> au lieu d'attendre udev indéfiniment.
+ENV DM_DISABLE_UDEV=1
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends systemd systemd-sysv dbus
 COPY . /opt/rootcamp-src
