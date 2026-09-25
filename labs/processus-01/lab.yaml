@@ -1,0 +1,5 @@
+title: Le processus qui revient toujours
+module: 03-processus-systemd
+level: intermédiaire
+duration: 25 min
+packages: procps psmisc cron
