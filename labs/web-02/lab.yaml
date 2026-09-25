@@ -1,0 +1,5 @@
+title: La passerelle en panne
+module: 09-serveur-web
+level: intermédiaire
+duration: 25 min
+packages: nginx curl python3
