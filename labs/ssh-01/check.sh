@@ -14,7 +14,8 @@ if (( (8#$(stat -c %a "$key") & 077) == 0 )); then
 else
   ko "ta clé privée n'est lisible que par toi"
 fi
-if sshd -T -f "$SSH_ETC/srv-web/sshd_config" 2>/dev/null | grep -qx 'strictmodes yes'; then
+effective=$(sshd -T -f "$SSH_ETC/srv-web/sshd_config" 2>/dev/null || true)
+if grep -qx 'strictmodes yes' <<<"$effective"; then
   ok "le serveur vérifie toujours les droits des fichiers de clés (StrictModes)"
 else
   ko "le serveur vérifie toujours les droits des fichiers de clés (StrictModes)"

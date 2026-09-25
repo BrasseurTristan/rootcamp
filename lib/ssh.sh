@@ -15,9 +15,11 @@ ssh_serveur() {
   systemctl stop "ssh-$m" &>/dev/null || true
   systemctl reset-failed "ssh-$m" &>/dev/null || true
   reseau_machine "$m" "$2" "$3"
-  rm -rf "$dir"
+  # On garde la clé d'hôte d'un reset à l'autre : sinon ssh crierait à
+  # l'attaque (« REMOTE HOST IDENTIFICATION HAS CHANGED ») à chaque reset.
+  find "$dir" -mindepth 1 -maxdepth 1 ! -name 'ssh_host_*' -exec rm -rf {} + 2>/dev/null || true
   mkdir -p "$dir/sshd_config.d"
-  ssh-keygen -q -t ed25519 -N '' -C "$m" -f "$dir/ssh_host_ed25519_key"
+  [[ -f $dir/ssh_host_ed25519_key ]] || ssh-keygen -q -t ed25519 -N '' -C "$m" -f "$dir/ssh_host_ed25519_key"
   cat > "$dir/sshd_config" <<CONF
 # Configuration du serveur SSH de la machine $m
 #
