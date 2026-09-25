@@ -101,7 +101,7 @@ Ou, comme la CI, dans un conteneur Debian 13 avec systemd :
 ```bash
 docker build -t rootcamp-test -f tests/Dockerfile .
 docker run -d --name rootcamp --privileged --cgroupns=host \
-  -v /sys/fs/cgroup:/sys/fs/cgroup:rw rootcamp-test
+  -v /sys/fs/cgroup:/sys/fs/cgroup:rw -v /dev:/dev rootcamp-test
 docker exec rootcamp bash /opt/rootcamp/tests/run-labs.sh
 docker rm -f rootcamp
 ```

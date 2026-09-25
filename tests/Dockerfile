@@ -1,7 +1,7 @@
 # Debian 13 avec systemd, pour tester les labs comme dans une vraie VM.
 #   docker build -t rootcamp-test -f tests/Dockerfile .
 #   docker run -d --name rootcamp --privileged --cgroupns=host \
-#     -v /sys/fs/cgroup:/sys/fs/cgroup:rw rootcamp-test
+#     -v /sys/fs/cgroup:/sys/fs/cgroup:rw -v /dev:/dev rootcamp-test
 #   docker exec rootcamp bash /opt/rootcamp/tests/run-labs.sh
 FROM debian:trixie
 ENV container=docker
