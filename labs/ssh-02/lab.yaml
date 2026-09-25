@@ -1,0 +1,5 @@
+title: Le serveur SSH trop accueillant
+module: 07-ssh
+level: intermédiaire
+duration: 25 min
+packages: openssh-server openssh-client sshpass iproute2
