@@ -45,4 +45,5 @@ nav:
   - Fiches:
       - 01 · Shell et arborescence: fiches/01-shell-arborescence.md
       - 02 · Utilisateurs et permissions: fiches/02-utilisateurs-permissions.md
+      - 03 · Processus et systemd: fiches/03-processus-systemd.md
   - Contribuer: contribuer.md

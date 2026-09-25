@@ -8,7 +8,7 @@ bagage.
 |----|--------|------------------------------|------|
 | 01 | [Shell et arborescence](fiches/01-shell-arborescence.md) | « Tout est fichier », l'arborescence, pipes et redirections | `shell-01` à `03` |
 | 02 | [Utilisateurs et permissions](fiches/02-utilisateurs-permissions.md) | rwx, groupes, sudo, pourquoi ne pas tout faire en root | `permissions-01` à `03` |
-| 03 | Processus et systemd | Signaux, unités, `journalctl`, le démarrage de la machine | à venir |
+| 03 | [Processus et systemd](fiches/03-processus-systemd.md) | Signaux, unités, `journalctl`, le démarrage de la machine | `systemd-01`, `systemd-02`, `processus-01` |
 | 04 | Paquets | apt, dépôts, dépendances, ce qu'installe vraiment un paquet | à venir |
 | 05 | Stockage | Disques, partitions, montages, `fstab`, LVM | à venir |
 | 06 | Réseau | IP, routes, DNS, ports, `ss`, pare-feu | à venir |
