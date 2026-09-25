@@ -1,0 +1,47 @@
+site_name: rootcamp
+site_description: Apprendre Linux en réparant des serveurs cassés
+site_url: https://brasseurtristan.github.io/rootcamp/
+repo_url: https://github.com/BrasseurTristan/rootcamp
+repo_name: BrasseurTristan/rootcamp
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: fr
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      toggle:
+        icon: material/weather-night
+        name: Mode sombre
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Mode clair
+  features:
+    - content.code.copy
+    - navigation.sections
+    - navigation.footer
+    - content.action.edit
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Accueil: index.md
+  - Démarrer: demarrer.md
+  - Le parcours: parcours.md
+  - Fiches:
+      - 02 · Utilisateurs et permissions: fiches/02-utilisateurs-permissions.md
+  - Contribuer: contribuer.md
