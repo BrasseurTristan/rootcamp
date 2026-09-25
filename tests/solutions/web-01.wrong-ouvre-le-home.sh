@@ -3,3 +3,4 @@
 chmod 755 /home/alice
 sed -i 's|^\(\s*\)index .*|\1index accueil.html;|' /etc/nginx/sites-available/compta
 systemctl reload nginx
+sleep 1

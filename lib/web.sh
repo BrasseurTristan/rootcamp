@@ -21,4 +21,14 @@ web_hosts() {
 }
 
 # web_code <url> [options curl] : code HTTP renvoyé (000 si pas de réponse).
-web_code() { curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$@" || true; }
+# Réessaie pendant 3 s tant que ce n'est pas un 200 : juste après un reload,
+# les anciens workers de nginx peuvent encore répondre.
+web_code() {
+  local code _
+  for _ in 1 2 3 4; do
+    code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$@" || true)
+    [[ $code == 200 ]] && break
+    sleep 1
+  done
+  echo "$code"
+}
