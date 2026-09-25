@@ -8,6 +8,7 @@ source "$RC_LIB/lab.sh"
 source "$RC_LIB/reseau.sh"
 
 reseau_machine poste-alice 10.10.0.1 10.10.0.2
+for p in 8080 3306 9090; do reseau_liberer_port "$p"; done
 
 mkdir -p /srv/intranet
 echo "<h1>Intranet de la compta</h1>" > /srv/intranet/index.html
@@ -35,5 +36,6 @@ table inet filtre {
 }
 NFT
 systemctl enable nftables &>/dev/null
+systemctl reset-failed nftables &>/dev/null || true   # oublie les redémarrages trop rapprochés
 systemctl restart nftables
 for p in 8080 3306 9090; do rc_retry 10 reseau_ecoute "$p"; done

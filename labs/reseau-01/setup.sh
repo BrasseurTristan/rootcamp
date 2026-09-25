@@ -10,6 +10,7 @@ source "$RC_LIB/reseau.sh"
 reseau_parefeu_ouvert
 
 systemctl disable --now intranet &>/dev/null || true
+reseau_liberer_port 8080
 reseau_machine poste-alice 10.10.0.1 10.10.0.2
 
 mkdir -p /srv/intranet

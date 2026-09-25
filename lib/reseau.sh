@@ -36,6 +36,16 @@ reseau_service() {
   systemd-run --quiet --unit="$unit" "$@"
 }
 
+# reseau_liberer_port <port> : arrête tout programme qui écoute sur ce port TCP
+# (reste d'une tentative précédente, serveur lancé à la main…).
+reseau_liberer_port() {
+  local pid
+  for pid in $(ss -Htlnp "sport = :$1" | grep -o 'pid=[0-9]*' | cut -d= -f2 | sort -u); do
+    kill "$pid" 2>/dev/null || true
+  done
+  rc_retry 5 sh -c "! ss -Htln 'sport = :$1' | grep -q ."
+}
+
 # reseau_ecoute <port> : vrai quand un programme écoute sur ce port TCP.
 reseau_ecoute() { ss -Htln "sport = :$1" | grep -q .; }
 
