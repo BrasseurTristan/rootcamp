@@ -3,3 +3,5 @@ source-path=SCRIPTDIR
 disable=SC2016
 # Fonctions appelées indirectement (expect_ok, rc_retry…) : ShellCheck ne les voit pas.
 disable=SC2329
+# (même chose, sous son ancien numéro, pour les versions de ShellCheck < 0.11)
+disable=SC2317

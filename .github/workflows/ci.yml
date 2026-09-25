@@ -10,6 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+      # Version figée : les avertissements changent d'une version à l'autre.
+      - run: pip install shellcheck-py==0.11.0.1
       - run: shellcheck -x bin/rootcamp install.sh lib/*.sh labs/*/*.sh tests/*.sh tests/solutions/*.sh
 
   labs:

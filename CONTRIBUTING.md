@@ -118,4 +118,5 @@ mkdocs serve
 ## Style
 
 - Tout le contenu est en français, en tutoyant.
-- Scripts en Bash, vérifiés par [ShellCheck](https://www.shellcheck.net/).
+- Scripts en Bash, vérifiés par [ShellCheck](https://www.shellcheck.net/) 0.11
+  (`pip install shellcheck-py==0.11.0.1`).
