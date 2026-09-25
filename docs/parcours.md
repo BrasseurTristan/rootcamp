@@ -14,5 +14,5 @@ bagage.
 | 06 | [Réseau](fiches/06-reseau.md) | IP, routes, DNS, ports, `ss`, pare-feu | `reseau-01` à `04` |
 | 07 | [SSH](fiches/07-ssh.md) | Clés, durcissement, tunnels | `ssh-01` à `03` |
 | 08 | [Logs et diagnostic](fiches/08-logs-diagnostic.md) | Une méthode pour enquêter sur une panne | `logs-01` à `03` |
-| 09 | Serveur web | nginx, reverse proxy, TLS | à venir |
+| 09 | [Serveur web](fiches/09-serveur-web.md) | nginx, reverse proxy, TLS | `web-01` à `03` |
 | 10 | Projet final | Monter un serveur de A à Z, puis résoudre une série de pannes | à venir |
