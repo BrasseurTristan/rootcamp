@@ -31,6 +31,9 @@ chmod 755 /opt/outils/indexeur /opt/outils/surveillant
 # La crontab de bob relance le surveillant à chaque démarrage.
 spool=/var/spool/cron/crontabs
 mkdir -p "$spool"
+# rm d'abord : le dossier est « sticky », et le noyau (fs.protected_regular)
+# interdit même à root d'y réécrire un fichier qui appartient à un autre.
+rm -f "$spool/bob"
 echo "@reboot /opt/outils/surveillant" > "$spool/bob"
 chown bob "$spool/bob"
 chgrp crontab "$spool/bob" 2>/dev/null || true
