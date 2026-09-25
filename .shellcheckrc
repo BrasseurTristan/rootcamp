@@ -1,3 +1,5 @@
 source-path=SCRIPTDIR
 # Les labs passent souvent des scripts à « sh -c '…' » : les $ doivent y rester littéraux.
 disable=SC2016
+# Fonctions appelées indirectement (expect_ok, rc_retry…) : ShellCheck ne les voit pas.
+disable=SC2329

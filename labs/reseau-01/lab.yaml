@@ -1,0 +1,5 @@
+title: L'intranet injoignable
+module: 06-reseau
+level: débutant
+duration: 20 min
+packages: iproute2 curl python3
