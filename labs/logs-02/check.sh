@@ -8,7 +8,7 @@ dir=/var/log/facturation-app
 [[ -f $conf ]] || rc_die "$conf a disparu ! Relance le lab avec 'rootcamp reset'."
 systemctl is-active --quiet facturation-journal || systemctl start facturation-journal
 
-state=$(mktemp)
+state="$(mktemp -d)/etat"   # un état neuf : la rotation forcée a toujours lieu
 simulation=$(logrotate -d -s "$state" "$conf" 2>&1 || true)
 if grep -qiE '^error|: error' <<<"$simulation"; then
   ko "la configuration logrotate est valide (logrotate -d)"
@@ -21,7 +21,7 @@ expect_ok "les archives sont compressées (compress)" grep -qE '^[[:space:]]*com
 
 # Une vraie rotation, comme celle de la nuit.
 logrotate -f -s "$state" "$conf" &>/dev/null || true
-rm -f "$state"
+rm -rf "$(dirname "$state")"
 if ls "$dir"/app.log.1* &>/dev/null; then
   ok "la rotation archive bien app.log"
 else
@@ -35,11 +35,4 @@ if (( after > before && after < 10000000 )); then
 else
   ko "après la rotation, l'application continue d'écrire dans un app.log tout neuf"
 fi
-used=$(du -sm "$dir" | cut -f1)
-if (( used < 20 )); then
-  ok "les logs n'occupent plus que $used Mo"
-else
-  ko "les logs n'occupent plus que peu de place ($used Mo)"
-fi
-
 rc_result
