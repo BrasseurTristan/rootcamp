@@ -65,3 +65,18 @@ expect_fail() {
 
 # À appeler à la fin de chaque check.sh.
 rc_result() { exit "$RC_FAILED"; }
+
+# --- Utilitaires -------------------------------------------------------------
+
+# rc_home : dossier personnel de la personne qui fait le lab.
+rc_home() { getent passwd "$RC_USER" | cut -d: -f6; }
+
+# rc_retry <secondes> <commande…> : réessaie la commande chaque seconde jusqu'à
+# ce qu'elle réussisse (utile quand un service met un peu de temps à démarrer).
+rc_retry() {
+  local n=$1; shift
+  until "$@" &>/dev/null; do
+    (( n-- > 0 )) || return 1
+    sleep 1
+  done
+}

@@ -23,10 +23,14 @@ Format plat `clé: valeur`, sans imbrication :
 
 ```yaml
 title: Le dossier partagé de la compta
-module: 02-utilisateurs-permissions
+module: 02-utilisateurs-permissions   # voir labs/modules.txt
 level: débutant        # débutant, intermédiaire ou avancé
 duration: 15 min
+packages: acl          # facultatif : paquets Debian nécessaires au lab
 ```
+
+Les paquets de `packages` sont installés par `install.sh` et, s'il en manque,
+par `rootcamp start`.
 
 ### mission.md, hints.md, debrief.md
 
@@ -85,15 +89,22 @@ La CI vérifie pour chaque lab que :
 3. la solution de référence est acceptée ;
 4. un reset remet bien le lab dans son état cassé.
 
-Pour lancer les tests en local, dans une Debian 13 jetable (la VM Vagrant par
-exemple) :
+Pour lancer les tests dans la VM Vagrant :
 
 ```bash
-sudo bash /opt/rootcamp/tests/run-labs.sh
+sudo bash /opt/rootcamp/tests/run-labs.sh                  # tous les labs
+sudo bash /opt/rootcamp/tests/run-labs.sh permissions-02   # un seul lab
 ```
 
-> Les tests de la CI tournent dans un conteneur Docker : un lab qui a besoin de
-> systemd, de disques ou du réseau devra être testé dans une VM.
+Ou, comme la CI, dans un conteneur Debian 13 avec systemd :
+
+```bash
+docker build -t rootcamp-test -f tests/Dockerfile .
+docker run -d --name rootcamp --privileged --cgroupns=host \
+  -v /sys/fs/cgroup:/sys/fs/cgroup:rw rootcamp-test
+docker exec rootcamp bash /opt/rootcamp/tests/run-labs.sh
+docker rm -f rootcamp
+```
 
 ## Écrire ou corriger une fiche
 

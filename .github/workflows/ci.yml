@@ -14,11 +14,20 @@ jobs:
 
   labs:
     runs-on: ubuntu-latest
-    container: debian:trixie
     steps:
       - uses: actions/checkout@v4
-      - run: RC_SOURCE="$GITHUB_WORKSPACE" bash install.sh
-      - run: bash tests/run-labs.sh
+      - name: Construire la VM de test (Debian 13 + systemd)
+        run: docker build -t rootcamp-test -f tests/Dockerfile .
+      - name: Démarrer la VM de test
+        run: |
+          docker run -d --name rootcamp --privileged --cgroupns=host \
+            -v /sys/fs/cgroup:/sys/fs/cgroup:rw rootcamp-test
+          docker exec rootcamp systemctl is-system-running --wait || true
+      - name: Tester les labs
+        run: docker exec rootcamp bash /opt/rootcamp/tests/run-labs.sh
+      - name: Journal système en cas d'échec
+        if: failure()
+        run: docker exec rootcamp journalctl --no-pager -n 200
 
   docs:
     runs-on: ubuntu-latest

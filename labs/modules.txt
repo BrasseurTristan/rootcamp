@@ -1,0 +1,11 @@
+# Titre affiché par « rootcamp list » pour chaque module (champ module des lab.yaml).
+01-shell-arborescence|01 · Shell et arborescence
+02-utilisateurs-permissions|02 · Utilisateurs et permissions
+03-processus-systemd|03 · Processus et systemd
+04-paquets|04 · Paquets
+05-stockage|05 · Stockage
+06-reseau|06 · Réseau
+07-ssh|07 · SSH
+08-logs-diagnostic|08 · Logs et diagnostic
+09-serveur-web|09 · Serveur web
+10-projet-final|10 · Projet final

@@ -54,19 +54,32 @@ hint_text()  { awk -v k="$2" 'BEGIN{n=1} /^---[[:space:]]*$/{n++; next} n==k' "$
 # pad <texte> <largeur> : comme printf %-Ns, mais compte les caractères accentués comme un seul.
 pad() { printf '%s%*s' "$1" $(( $2 - ${#1} > 0 ? $2 - ${#1} : 0 )) ''; }
 
+# module_title <module> : titre lisible du module, tiré de labs/modules.txt.
+module_title() {
+  local title
+  title=$(sed -n "s/^$1|//p" "$RC_LABS/modules.txt" 2>/dev/null)
+  echo "${title:-$1}"
+}
+
 cmd_list() {
-  local d id mark current
+  local d id mark current module last=''
   current=$(current_lab)
   echo "${B}   $(pad LAB 18) $(pad NIVEAU 13) $(pad DURÉE 8) TITRE${N}"
-  for d in "$RC_LABS"/*/; do
-    id=$(basename "$d")
-    [[ -f $d/lab.yaml ]] || continue
+  while IFS=$'\t' read -r module id; do
+    d="$RC_LABS/$id"
+    if [[ $module != "$last" ]]; then
+      echo
+      echo "${B}$(module_title "$module")${N}"
+      last=$module
+    fi
     if is_done "$id"; then mark="${G}✓${N}"
     elif [[ $id == "$current" ]]; then mark="${Y}▶${N}"
     else mark="${D}·${N}"
     fi
     echo " $mark $(pad "$id" 18) $(pad "$(lab_meta "$d" level)" 13) $(pad "$(lab_meta "$d" duration)" 8) $(lab_meta "$d" title)"
-  done
+  done < <(for d in "$RC_LABS"/*/; do
+             [[ -f $d/lab.yaml ]] && printf '%s\t%s\n' "$(lab_meta "$d" module)" "$(basename "$d")"
+           done | sort)
   echo
   echo "${D}✓ terminé   ▶ en cours${N}"
 }
@@ -84,11 +97,25 @@ cmd_mission() {
   echo "${D}rootcamp check   vérifier ta solution${N}"
 }
 
+# Installe les paquets listés dans le champ « packages » de lab.yaml s'il en manque.
+ensure_packages() {
+  local p missing=()
+  for p in $(lab_meta "$1" packages); do
+    dpkg-query -W -f='${Status}' "$p" 2>/dev/null | grep -q "install ok installed" || missing+=("$p")
+  done
+  (( ${#missing[@]} )) || return 0
+  info "Installation des paquets nécessaires : ${missing[*]}"
+  as_root apt-get update -qq
+  as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "${missing[@]}" >/dev/null \
+    || die "Impossible d'installer ${missing[*]}. La VM a-t-elle accès à Internet ?"
+}
+
 cmd_start() {
   local lab d
   lab=${1:-}
   d=$(lab_dir "$lab")
   mkdir -p "$RC_STATE"
+  ensure_packages "$d"
   info "Préparation du lab $lab…"
   as_root bash "$d/setup.sh" || die "La préparation du lab a échoué."
   echo "$lab" > "$RC_STATE/current"

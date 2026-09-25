@@ -1,1 +1,3 @@
 source-path=SCRIPTDIR
+# Les labs passent souvent des scripts à « sh -c '…' » : les $ doivent y rester littéraux.
+disable=SC2016

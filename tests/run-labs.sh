@@ -5,6 +5,8 @@
 #   3. après <lab>.sh (bonne solution), le check doit réussir
 #
 # À lancer en root dans une Debian 13 jetable (conteneur ou VM) où rootcamp est installé.
+#   bash tests/run-labs.sh                  # tous les labs
+#   bash tests/run-labs.sh permissions-02   # seulement certains labs
 set -uo pipefail
 
 cd "$(dirname "$0")/.." || exit 1
@@ -18,6 +20,7 @@ fail() { echo "  ✗ $*"; failures=$(( failures + 1 )); }
 for solution in tests/solutions/*.sh; do
   [[ $solution == *.wrong-*.sh ]] && continue
   lab=$(basename "$solution" .sh)
+  if (( $# )) && [[ " $* " != *" $lab "* ]]; then continue; fi
   echo "== $lab"
 
   rootcamp start "$lab" >/dev/null || { fail "setup a échoué"; continue; }

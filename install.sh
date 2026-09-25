@@ -38,6 +38,14 @@ fi
 ln -sf "$RC_DIR/bin/rootcamp" /usr/local/bin/rootcamp
 mkdir -p /var/lib/rootcamp
 
+# Paquets demandés par les labs (champ « packages » des lab.yaml), installés
+# d'avance pour que les labs démarrent vite, même sans réseau.
+mapfile -t lab_packages < <(sed -n 's/^packages:[[:space:]]*//p' "$RC_DIR"/labs/*/lab.yaml | tr ' ' '\n' | sed '/^$/d' | sort -u)
+if (( ${#lab_packages[@]} )); then
+  echo "==> Installation des outils utilisés par les labs…"
+  DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "${lab_packages[@]}" >/dev/null
+fi
+
 cat <<'EOF'
 
   rootcamp est installé !
