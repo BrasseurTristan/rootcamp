@@ -9,31 +9,38 @@ jobs:
   shellcheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: shellcheck -x bin/rootcamp install.sh lib/*.sh labs/*/*.sh tests/*.sh tests/solutions/*.sh
 
   labs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Construire la VM de test (Debian 13 + systemd)
         run: docker build -t rootcamp-test -f tests/Dockerfile .
       - name: Démarrer la VM de test
         run: |
           docker run -d --name rootcamp --privileged --cgroupns=host \
             -v /sys/fs/cgroup:/sys/fs/cgroup:rw rootcamp-test
-          docker exec rootcamp systemctl is-system-running --wait || true
+          # Attendre la fin du démarrage (sinon, par exemple, /tmp est remonté en plein test).
+          for i in $(seq 60); do
+            state=$(docker exec rootcamp systemctl is-system-running 2>/dev/null || true)
+            case $state in running|degraded) break ;; esac
+            sleep 1
+          done
+          echo "systemd : $state"
+          docker exec rootcamp systemctl --failed --no-pager || true
       - name: Tester les labs
         run: docker exec rootcamp bash /opt/rootcamp/tests/run-labs.sh
       - name: Journal système en cas d'échec
         if: failure()
-        run: docker exec rootcamp journalctl --no-pager -n 200
+        run: docker exec rootcamp journalctl --no-pager -p warning -n 100
 
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.x"
       - run: pip install -r requirements-docs.txt

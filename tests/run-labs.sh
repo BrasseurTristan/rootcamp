@@ -11,7 +11,7 @@ set -uo pipefail
 
 cd "$(dirname "$0")/.." || exit 1
 export RC_STATE
-RC_STATE=$(mktemp -d)
+RC_STATE=$(mktemp -d -p /var/tmp)   # pas /tmp : c'est un tmpfs monté au démarrage
 failures=0
 
 pass() { echo "  ✓ $*"; }

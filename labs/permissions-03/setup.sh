@@ -6,7 +6,7 @@ set -euo pipefail
 source "$RC_LIB/lab.sh"
 
 # Supprime les règles sudo laissées par une tentative précédente.
-grep -lE '(^|[^a-z])deploy' /etc/sudoers.d/* 2>/dev/null | xargs -r rm -f
+{ grep -lE '(^|[^a-z])deploy' /etc/sudoers.d/* 2>/dev/null || true; } | xargs -r rm -f
 sed -i '/^[^#]*deploy/d' /etc/sudoers
 
 rc_user deploy
