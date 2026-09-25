@@ -10,7 +10,7 @@ bagage.
 | 02 | [Utilisateurs et permissions](fiches/02-utilisateurs-permissions.md) | rwx, groupes, sudo, pourquoi ne pas tout faire en root | `permissions-01` à `03` |
 | 03 | [Processus et systemd](fiches/03-processus-systemd.md) | Signaux, unités, `journalctl`, le démarrage de la machine | `systemd-01`, `systemd-02`, `processus-01` |
 | 04 | [Paquets](fiches/04-paquets.md) | apt, dépôts, signatures, ce qu'installe vraiment un paquet | `paquets-01` à `03` |
-| 05 | Stockage | Disques, partitions, montages, `fstab`, LVM | à venir |
+| 05 | [Stockage](fiches/05-stockage.md) | Disques, partitions, montages, `fstab`, LVM | `stockage-01` à `03` |
 | 06 | Réseau | IP, routes, DNS, ports, `ss`, pare-feu | à venir |
 | 07 | SSH | Clés, durcissement, tunnels | à venir |
 | 08 | Logs et diagnostic | Une méthode pour enquêter sur une panne | à venir |
