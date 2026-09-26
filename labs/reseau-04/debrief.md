@@ -41,5 +41,8 @@ POURQUOI ÇA MARCHE
     reject = refuser poliment (l'autre reçoit une erreur tout de suite).
   - Avant de toucher au pare-feu d'un serveur distant, garde une
     session SSH ouverte, et vérifie que la règle SSH est toujours là.
+    Attention au « 2222 » de « vagrant ssh » : c'est un port de TA
+    machine, redirigé vers le port 22 de la VM. Dans la VM, c'est bien
+    le 22 qu'il faut laisser ouvert, et depuis n'importe quelle adresse.
   - Mieux encore : que la base n'écoute que sur 127.0.0.1. Pare-feu ET
     bonne configuration du service, c'est la défense en profondeur.

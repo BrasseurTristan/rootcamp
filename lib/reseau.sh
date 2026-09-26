@@ -77,4 +77,30 @@ NFT
   nft -f /etc/nftables.conf
 }
 
+# reseau_parefeu_laisse_ssh <fichier> : charge ce fichier nftables dans deux
+# machines jetables reliées entre elles et vérifie qu'une connexion SSH
+# (port 22) venant d'une adresse quelconque passe encore. Le pare-feu du
+# serveur n'est jamais touché : on sait si la règle coupe l'accès avant de
+# l'appliquer pour de vrai.
+reseau_parefeu_laisse_ssh() {
+  local f=$1 srv=rc-essai-srv cli=rc-essai-cli res=0
+  reseau_supprimer "$srv"; reseau_supprimer "$cli"
+  ip netns add "$srv"
+  ip netns add "$cli"
+  ip -n "$srv" link add eth0 type veth peer name eth0 netns "$cli"
+  ip -n "$srv" link set lo up
+  ip -n "$srv" addr add 192.168.56.10/24 dev eth0
+  ip -n "$srv" link set eth0 up
+  ip -n "$cli" addr add 192.168.56.1/24 dev eth0
+  ip -n "$cli" link set eth0 up
+  if ip netns exec "$srv" nft -f "$f" &>/dev/null; then
+    ( ip netns exec "$srv" nc -lk 22 &>/dev/null & )   # sous-shell : pas de « Killed » au ménage
+    rc_retry 3 ip netns exec "$cli" nc -z -w 1 192.168.56.10 22 || res=1
+  else
+    res=1
+  fi
+  reseau_supprimer "$srv"; reseau_supprimer "$cli"
+  return "$res"
+}
+
 _reseau_veth() { echo "rc-${1:0:12}"; }
