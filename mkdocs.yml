@@ -51,4 +51,5 @@ nav:
       - 06 · Réseau: fiches/06-reseau.md
       - 07 · SSH: fiches/07-ssh.md
       - 08 · Logs et diagnostic: fiches/08-logs-diagnostic.md
+      - 09 · Serveur web: fiches/09-serveur-web.md
   - Contribuer: contribuer.md
