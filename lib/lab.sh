@@ -24,11 +24,37 @@ rc_user() {
   local u=$1
   if id "$u" &>/dev/null; then
     _rc_owned "user:$u" || rc_die "L'utilisateur '$u' existe déjà et n'a pas été créé par rootcamp : je n'y touche pas."
-    pkill -KILL -u "$u" 2>/dev/null || true
-    userdel -r "$u" &>/dev/null || userdel "$u"
+    local _
+    for _ in 1 2 3; do
+      rc_kill_user "$u"
+      userdel -r "$u" &>/dev/null && break
+      sleep 0.5
+    done
+    if id "$u" &>/dev/null; then userdel "$u"; fi
   fi
   useradd -m -s /bin/bash "$u"
   _rc_own "user:$u"
+}
+
+# rc_kill_user <nom> : tue tous les processus d'un utilisateur. On compare les
+# UID réel, effectif et sauvegardé (/proc/<pid>/status) : un « sudo » lancé par
+# l'utilisateur appartient à root mais compte pour userdel. On recommence tant
+# qu'il en reste : un processus peut en lancer un autre pendant le ménage.
+rc_kill_user() {
+  local uid p found uids _
+  uid=$(id -u "$1" 2>/dev/null) || return 0
+  systemctl stop "user@$uid.service" &>/dev/null || true   # l'instance systemd --user
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    found=0
+    for p in /proc/[0-9]*; do
+      uids=$(awk '/^Uid:/ {print $2, $3, $4}' "$p/status" 2>/dev/null) || continue
+      if [[ " $uids " == *" $uid "* ]]; then
+        kill -KILL "${p#/proc/}" 2>/dev/null && found=1
+      fi
+    done
+    (( found )) || return 0
+    sleep 0.2
+  done
 }
 
 # rc_group <nom> : (re)crée un groupe de lab vide.
@@ -70,6 +96,18 @@ rc_result() { exit "$RC_FAILED"; }
 
 # rc_home : dossier personnel de la personne qui fait le lab.
 rc_home() { getent passwd "$RC_USER" | cut -d: -f6; }
+
+# rc_pids <texte> : PID des processus dont la ligne de commande contient <texte>
+# (comme « pgrep -f », sans dépendre de procps).
+rc_pids() {
+  local p cmd
+  for p in /proc/[0-9]*; do
+    [[ ${p#/proc/} == "$$" || ${p#/proc/} == "$BASHPID" ]] && continue
+    cmd=$(tr '\0' ' ' < "$p/cmdline" 2>/dev/null) || continue
+    [[ $cmd == *"$1"* ]] && echo "${p#/proc/}"
+  done
+  return 0
+}
 
 # rc_retry <secondes> <commande…> : réessaie la commande chaque seconde jusqu'à
 # ce qu'elle réussisse (utile quand un service met un peu de temps à démarrer).
