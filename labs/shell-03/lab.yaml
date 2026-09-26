@@ -1,0 +1,5 @@
+title: La sauvegarde qui ne dit rien
+module: 01-shell-arborescence
+level: intermédiaire
+duration: 25 min
+packages: cron

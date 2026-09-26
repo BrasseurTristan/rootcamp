@@ -6,7 +6,7 @@ bagage.
 
 | #  | Module | Ce que tu comprends vraiment | Labs |
 |----|--------|------------------------------|------|
-| 01 | Shell et arborescence | « Tout est fichier », l'arborescence, pipes et redirections | à venir |
+| 01 | [Shell et arborescence](fiches/01-shell-arborescence.md) | « Tout est fichier », l'arborescence, pipes et redirections | `shell-01` à `03` |
 | 02 | [Utilisateurs et permissions](fiches/02-utilisateurs-permissions.md) | rwx, groupes, sudo, pourquoi ne pas tout faire en root | `permissions-01` à `03` |
 | 03 | Processus et systemd | Signaux, unités, `journalctl`, le démarrage de la machine | à venir |
 | 04 | Paquets | apt, dépôts, dépendances, ce qu'installe vraiment un paquet | à venir |
