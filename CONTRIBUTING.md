@@ -83,6 +83,21 @@ regles=$(nft list ruleset)
 if grep -q 'dport 22' <<<"$regles"; then …
 ```
 
+### Les bibliothèques de `lib/`
+
+En plus de `lib/lab.sh` (chargé par tous les labs), des bibliothèques
+simulent l'environnement d'un vrai serveur. Charge-les dans `setup.sh` et
+`check.sh` avec `source "$RC_LIB/<fichier>"` :
+
+| Fichier | Ce qu'il apporte | Utilisé par |
+|---------|------------------|-------------|
+| `depot.sh` | un dépôt APT interne signé, avec de vrais paquets `.deb` | module 04 |
+| `disques.sh` | des disques virtuels (loop) qu'on peut partitionner, formater, mettre en LVM | module 05 |
+| `reseau.sh` | des « machines » simulées (netns + veth), de petits services réseau | modules 06, 07, 10 |
+| `ssh.sh` | des serveurs SSH « distants » (jamais le SSH de la VM) | module 07 |
+| `web.sh` | activer un site nginx, déclarer un nom dans `/etc/hosts` | modules 09, 10 |
+| `carnet.sh` | l'application des labs finaux, son déploiement et sa vérification | module 10 |
+
 Formule les descriptions comme l'état attendu (« bob peut lire le fichier ») :
 en rouge, elles indiquent quoi corriger sans donner la solution.
 

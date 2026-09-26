@@ -1,0 +1,5 @@
+title: Mise en production
+module: 10-projet-final
+level: avancé
+duration: 2 h
+packages: nginx curl openssl python3 nftables netcat-openbsd iproute2

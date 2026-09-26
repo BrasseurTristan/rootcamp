@@ -49,14 +49,14 @@ reseau_liberer_port() {
 # reseau_ecoute <port> : vrai quand un programme écoute sur ce port TCP.
 reseau_ecoute() { ss -Htln "sport = :$1" | grep -q .; }
 
-# reseau_parefeu_ouvert : si le pare-feu du lab reseau-04 est en place, remet la
-# configuration par défaut de Debian (tout est autorisé), pour qu'il ne gêne pas
-# les autres labs.
+# reseau_parefeu_ouvert : si un pare-feu restrictif est en place (celui du lab
+# reseau-04, des labs finaux…), remet la configuration par défaut de Debian
+# (tout est autorisé), pour qu'il ne gêne pas les autres labs.
 reseau_parefeu_ouvert() {
   command -v nft >/dev/null || return 0
-  local tables
-  tables=$(nft list tables 2>/dev/null || true)
-  grep -qs 'table inet filtre' /etc/nftables.conf || grep -qw filtre <<<"$tables" || return 0
+  local rules
+  rules=$(nft list ruleset 2>/dev/null || true)
+  grep -qs 'policy drop' /etc/nftables.conf || grep -q 'policy drop' <<<"$rules" || return 0
   cat > /etc/nftables.conf <<'NFT'
 #!/usr/sbin/nft -f
 
