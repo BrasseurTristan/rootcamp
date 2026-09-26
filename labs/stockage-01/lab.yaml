@@ -1,0 +1,5 @@
+title: Le disque plein
+module: 05-stockage
+level: intermédiaire
+duration: 25 min
+packages: e2fsprogs lsof

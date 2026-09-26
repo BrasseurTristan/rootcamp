@@ -1,0 +1,5 @@
+title: La base de données à l'étroit
+module: 05-stockage
+level: avancé
+duration: 30 min
+packages: e2fsprogs lvm2
