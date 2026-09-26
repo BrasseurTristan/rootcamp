@@ -7,7 +7,9 @@ source "$RC_LIB/lab.sh"
 
 unit=/etc/systemd/system/facturation-api.service
 systemctl disable --now facturation-api &>/dev/null || true
-rm -rf "$unit" "$unit.d"
+systemctl disable --runtime facturation-api &>/dev/null || true
+rm -rf "$unit" "$unit.d" /run/systemd/system/facturation-api.service.d
+rm -f /usr/local/bin/facturation_api   # un raccourci créé pour contourner la panne
 
 rc_user facturation
 

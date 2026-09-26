@@ -7,10 +7,15 @@ svc=rapports
 [[ -f /var/lib/rootcamp/systemd-02.sha256 ]] || rc_die "État du lab introuvable. Relance-le avec 'rootcamp reset'."
 
 expect_ok "le fichier d'unité du paquet n'a pas été modifié" sha256sum --status -c /var/lib/rootcamp/systemd-02.sha256
-if [[ -n $(systemctl show -p DropInPaths --value "$svc") ]]; then
-  ok "la configuration est personnalisée avec un fichier de surcharge (drop-in)"
+# Personnalisation dans /etc : drop-in (systemctl edit) ou copie complète
+# (systemctl edit --full). Ce qui est dans /run disparaît au redémarrage.
+fichiers="$(systemctl show -p FragmentPath --value "$svc") $(systemctl show -p DropInPaths --value "$svc")"
+if [[ " $fichiers" == *" /run/"* ]]; then
+  ko "la personnalisation est permanente (un fichier dans /run/systemd disparaît au redémarrage)"
+elif [[ " $fichiers" == *" /etc/"* ]]; then
+  ok "la configuration est personnalisée dans /etc/systemd/system, hors du fichier du paquet"
 else
-  ko "la configuration est personnalisée avec un fichier de surcharge (drop-in)"
+  ko "la configuration est personnalisée dans /etc/systemd/system, hors du fichier du paquet"
 fi
 if [[ $(systemctl show -p NeedDaemonReload --value "$svc") == no ]]; then
   ok "systemd a relu la configuration"

@@ -22,6 +22,6 @@ if [[ -f $conf && $(stat -c %U "$conf") == root ]]; then
 else
   ko "la configuration appartient à root"
 fi
-expect_ok "l'application démarre (commande 'facturation')" /usr/local/bin/facturation
+expect_ok "l'application démarre, pour n'importe quel utilisateur (commande 'facturation')" as_user nobody /usr/local/bin/facturation
 
 rc_result
