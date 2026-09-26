@@ -1,0 +1,5 @@
+title: Le pare-feu à l'envers
+module: 06-reseau
+level: avancé
+duration: 30 min
+packages: iproute2 nftables curl netcat-openbsd python3

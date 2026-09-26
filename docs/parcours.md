@@ -11,7 +11,7 @@ bagage.
 | 03 | [Processus et systemd](fiches/03-processus-systemd.md) | Signaux, unités, `journalctl`, le démarrage de la machine | `systemd-01`, `systemd-02`, `processus-01` |
 | 04 | [Paquets](fiches/04-paquets.md) | apt, dépôts, signatures, ce qu'installe vraiment un paquet | `paquets-01` à `03` |
 | 05 | [Stockage](fiches/05-stockage.md) | Disques, partitions, montages, `fstab`, LVM | `stockage-01` à `03` |
-| 06 | Réseau | IP, routes, DNS, ports, `ss`, pare-feu | à venir |
+| 06 | [Réseau](fiches/06-reseau.md) | IP, routes, DNS, ports, `ss`, pare-feu | `reseau-01` à `04` |
 | 07 | SSH | Clés, durcissement, tunnels | à venir |
 | 08 | Logs et diagnostic | Une méthode pour enquêter sur une panne | à venir |
 | 09 | Serveur web | nginx, reverse proxy, TLS | à venir |

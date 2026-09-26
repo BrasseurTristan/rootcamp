@@ -73,6 +73,16 @@ Fonctions disponibles (voir `lib/lab.sh`) :
 | `rc_die "message"` | arrêter la vérification (état incohérent) |
 | `rc_result` | à appeler à la fin : code de sortie selon les résultats |
 
+**Piège** : les scripts tournent avec `set -o pipefail`. Dans ce mode,
+`commande | grep -q motif` peut échouer au hasard : `grep -q` s'arrête à la
+première correspondance, et `commande` reçoit un SIGPIPE si elle écrit encore.
+Capture d'abord la sortie :
+
+```bash
+regles=$(nft list ruleset)
+if grep -q 'dport 22' <<<"$regles"; then …
+```
+
 Formule les descriptions comme l'état attendu (« bob peut lire le fichier ») :
 en rouge, elles indiquent quoi corriger sans donner la solution.
 
@@ -118,4 +128,5 @@ mkdocs serve
 ## Style
 
 - Tout le contenu est en français, en tutoyant.
-- Scripts en Bash, vérifiés par [ShellCheck](https://www.shellcheck.net/).
+- Scripts en Bash, vérifiés par [ShellCheck](https://www.shellcheck.net/) 0.11
+  (`pip install shellcheck-py==0.11.0.1`).

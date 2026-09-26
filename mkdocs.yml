@@ -48,4 +48,5 @@ nav:
       - 03 · Processus et systemd: fiches/03-processus-systemd.md
       - 04 · Paquets: fiches/04-paquets.md
       - 05 · Stockage: fiches/05-stockage.md
+      - 06 · Réseau: fiches/06-reseau.md
   - Contribuer: contribuer.md
