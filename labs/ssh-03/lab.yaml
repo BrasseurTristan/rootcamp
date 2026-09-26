@@ -1,0 +1,5 @@
+title: L'interface d'administration cachée
+module: 07-ssh
+level: avancé
+duration: 30 min
+packages: openssh-server openssh-client python3 curl iproute2

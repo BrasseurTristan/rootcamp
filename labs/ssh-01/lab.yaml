@@ -1,0 +1,5 @@
+title: La clé refusée
+module: 07-ssh
+level: débutant
+duration: 20 min
+packages: openssh-server openssh-client iproute2
