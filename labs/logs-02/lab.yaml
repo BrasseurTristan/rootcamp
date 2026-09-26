@@ -1,0 +1,5 @@
+title: Le log qui ne s'arrête jamais
+module: 08-logs-diagnostic
+level: intermédiaire
+duration: 25 min
+packages: logrotate gzip
