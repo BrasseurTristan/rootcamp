@@ -27,6 +27,8 @@ olddir=$(awk '$1 == "olddir" {print $2}' "$conf" | tail -n1)
 if [[ -n $olddir && $olddir != /* ]]; then olddir="$dir/$olddir"; fi
 archives() { find "$dir" ${olddir:+"$olddir"} -maxdepth 1 -name 'app.log?*' 2>/dev/null; }
 archives | xargs -r rm -f
+# Un log vide n'est pas archivé (notifempty) : on y écrit une ligne d'abord.
+echo "$(date '+%F %T') rootcamp : test de rotation" >> "$dir/app.log"
 logrotate -f -s "$state" "$conf" &>/dev/null || true
 rm -rf "$(dirname "$state")"
 if [[ -n $(archives) ]]; then

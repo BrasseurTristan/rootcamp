@@ -89,12 +89,13 @@ SOURCE
 }
 
 # depot_candidat_futur : la version que choisirait apt si une 2.3 sortait
-# demain dans le dépôt interne, avec les épinglages actuels. La simulation se
+# demain dans le dépôt interne (à côté des versions actuelles), avec les épinglages actuels. La simulation se
 # fait dans un dossier temporaire : la vraie configuration d'APT n'est pas touchée.
 depot_candidat_futur() {
   local tmp opts
   tmp=$(mktemp -d)
   mkdir -p "$tmp/depot" "$tmp/lists/partial"
+  cp "$DEPOT"/*.deb "$tmp/depot/" 2>/dev/null || true   # les versions actuelles, plus la 2.3
   DEPOT=$tmp/depot depot_paquet 2.3
   DEPOT=$tmp/depot depot_index
   printf 'Types: deb\nURIs: file:%s\nSuites: ./\nTrusted: yes\n' "$tmp/depot" > "$tmp/futur.sources"
