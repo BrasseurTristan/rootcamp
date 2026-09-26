@@ -7,6 +7,7 @@ source "$RC_LIB/lab.sh"
 # shellcheck source=../../lib/disques.sh
 source "$RC_LIB/disques.sh"
 
+cd /
 systemctl stop exporteur &>/dev/null || true
 systemctl reset-failed exporteur &>/dev/null || true
 disque_supprimer donnees

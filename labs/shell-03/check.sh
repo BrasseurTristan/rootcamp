@@ -7,9 +7,20 @@ cronfile=/etc/cron.d/sauvegarde-compta
 log=/var/log/sauvegarde-compta.log
 [[ -f $cronfile ]] || rc_die "$cronfile a disparu ! Relance le lab avec 'rootcamp reset'."
 
-# Comme cron : PATH minimal, sauf si le fichier définit sa propre variable PATH.
-path=$(sed -n 's/^[[:space:]]*PATH[[:space:]]*=[[:space:]]*//p' "$cronfile" | tail -n1)
+# cron_var <nom> : valeur donnée à une variable dans le fichier cron (la
+# dernière), sans les guillemets qui l'entourent, comme le fait cron.
+cron_var() {
+  local v
+  v=$(sed -n "s/^[[:space:]]*$1[[:space:]]*=[[:space:]]*//p" "$cronfile" | tail -n1)
+  v=${v%"${v##*[![:space:]]}"}
+  if [[ $v =~ ^\"(.*)\"$ || $v =~ ^\'(.*)\'$ ]]; then v=${BASH_REMATCH[1]}; fi
+  echo "$v"
+}
+# Comme cron : PATH minimal et /bin/sh, sauf si le fichier définit PATH ou SHELL.
+path=$(cron_var PATH)
 path=${path:-/usr/bin:/bin}
+shell=$(cron_var SHELL)
+shell=${shell:-/bin/sh}
 job=$(grep -vE '^[[:space:]]*(#|$|[A-Za-z_]+[[:space:]]*=)' "$cronfile" | head -n1)
 read -r m h dom mon dow user cmd <<<"$job"
 
@@ -26,7 +37,7 @@ fi
 
 # On lance la tâche deux fois, exactement comme cron le ferait.
 rm -f "$log"
-run_like_cron() { env -i PATH="$path" HOME=/root SHELL=/bin/sh LOGNAME=root /bin/sh -c "$cmd" >/dev/null 2>&1; }
+run_like_cron() { env -i PATH="$path" HOME=/root SHELL="$shell" LOGNAME=root "$shell" -c "$cmd" >/dev/null 2>&1; }
 if run_like_cron && run_like_cron; then
   ok "la tâche fonctionne dans l'environnement minimal de cron"
 else

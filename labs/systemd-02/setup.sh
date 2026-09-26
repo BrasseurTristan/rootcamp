@@ -7,7 +7,8 @@ source "$RC_LIB/lab.sh"
 
 unit=/usr/lib/systemd/system/rapports.service
 systemctl disable --now rapports &>/dev/null || true
-rm -rf /etc/systemd/system/rapports.service /etc/systemd/system/rapports.service.d
+rm -rf /etc/systemd/system/rapports.service /etc/systemd/system/rapports.service.d \
+       /run/systemd/system/rapports.service /run/systemd/system/rapports.service.d
 
 rc_user rapports
 

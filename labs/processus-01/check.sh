@@ -17,7 +17,7 @@ if [[ -z $(rc_pids /opt/outils/surveillant) ]]; then
 else
   ko "le programme qui relançait l'indexeur est arrêté"
 fi
-if grep -qs surveillant /var/spool/cron/crontabs/bob; then
+if grep -qsE '^[[:space:]]*[^#[:space:]].*surveillant' /var/spool/cron/crontabs/bob; then
   ko "rien ne relancera le problème au prochain redémarrage"
 else
   ok "rien ne relancera le problème au prochain redémarrage"

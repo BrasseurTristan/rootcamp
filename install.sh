@@ -20,7 +20,9 @@ RC_DIR=/opt/rootcamp
 [[ ${VERSION_ID:-} == 13 ]] || echo "Attention : rootcamp est testé sur Debian 13, tu as ${PRETTY_NAME}."
 
 echo "==> Installation des dépendances…"
-apt-get update -qq
+# Une source APT cassée (un lab du module 04 abandonné en cours…) ne doit pas
+# empêcher l'installation : on prévient et on continue.
+apt-get update -qq || echo "Attention : « apt-get update » a signalé des erreurs, on continue."
 DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git sudo acl procps >/dev/null
 
 if [[ -n ${RC_SOURCE:-} ]]; then
@@ -40,7 +42,8 @@ mkdir -p /var/lib/rootcamp
 
 # Paquets demandés par les labs (champ « packages » des lab.yaml), installés
 # d'avance pour que les labs démarrent vite, même sans réseau.
-mapfile -t lab_packages < <(sed -n 's/^packages:[[:space:]]*//p' "$RC_DIR"/labs/*/lab.yaml | tr ' ' '\n' | sed '/^$/d' | sort -u)
+mapfile -t lab_packages < <(sed -En 's/[[:space:]]+#.*$//; s/^packages:[[:space:]]*//p' "$RC_DIR"/labs/*/lab.yaml \
+  | tr ' ' '\n' | sed '/^$/d' | sort -u)
 if (( ${#lab_packages[@]} )); then
   echo "==> Installation des outils utilisés par les labs…"
   DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "${lab_packages[@]}" >/dev/null

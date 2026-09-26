@@ -1,4 +1,4 @@
-LES PANNES POSSIBLES (trois étaient actives cette nuit)
+LES PANNES POSSIBLES (les trois de cette nuit sont rappelées plus haut)
 
   dns         /etc/hosts envoyait carnet.interne vers 10.99.0.14
               → getent hosts, puis corriger /etc/hosts
@@ -13,7 +13,8 @@ LES PANNES POSSIBLES (trois étaient actives cette nuit)
               → status=203/EXEC dans systemctl status carnet (et, après
                 trop d'échecs, « start-limit-hit » : systemctl reset-failed)
   donnees     /var/lib/carnet appartenait à root (700)
-              → 500 à l'enregistrement, PermissionError dans journalctl -u carnet
+              → 500 à la lecture comme à l'enregistrement ; après un envoi
+                de note, « Permission denied » dans journalctl -u carnet
 
 LA MÉTHODE
 

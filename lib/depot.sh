@@ -12,7 +12,8 @@ depot_nettoyer() {
   apt-mark unhold facturation-agent &>/dev/null || true
   dpkg --purge facturation-agent &>/dev/null || true
   { grep -rlE 'depot[-_]interne' /etc/apt/sources.list.d/ 2>/dev/null || true; } | xargs -r rm -f
-  rm -rf "$DEPOT" /etc/apt/preferences.d/facturation*
+  rm -rf "$DEPOT" /srv/depot_interne /etc/apt/preferences.d/facturation*   # y compris un lien créé à la main
+  rm -f /var/lib/apt/lists/*depot?interne*   # index d'un ancien dépôt : « Hash Sum mismatch »
   rm -f /etc/apt/keyrings/depot-interne* /usr/share/keyrings/depot-interne* /etc/apt/trusted.gpg.d/depot-interne*
   mkdir -p "$DEPOT" /etc/apt/keyrings
 }
@@ -38,9 +39,8 @@ CONTROL
   rm -rf "$b"
 }
 
-# depot_publier : génère l'index (Packages, Release) et le signe (InRelease).
-# La clé publique est déposée dans $DEPOT/cle-publique.asc.
-depot_publier() {
+# depot_index : génère l'index du dépôt (Packages, Release).
+depot_index() {
   local f
   for f in "$DEPOT"/*.deb; do
     dpkg-deb --field "$f"
@@ -56,6 +56,12 @@ Date: $(LC_ALL=C date -Ru)
 SHA256:
  $(sha256sum "$DEPOT/Packages" | cut -d' ' -f1) $(stat -c %s "$DEPOT/Packages") Packages
 RELEASE
+}
+
+# depot_publier : génère l'index et le signe (InRelease). La clé publique est
+# déposée dans $DEPOT/cle-publique.asc.
+depot_publier() {
+  depot_index
   local gnupg
   gnupg=$(mktemp -d)
   GNUPGHOME=$gnupg gpg --batch --quiet --passphrase '' \
@@ -77,6 +83,27 @@ URIs: file:$DEPOT
 Suites: ./
 Signed-By: $DEPOT_CLE
 SOURCE
+  # apt lit l'index du nouveau dépôt (et seulement celui-là : pas de réseau).
+  apt-get update -qq -o Dir::Etc::sourcelist="$DEPOT_SOURCE" -o Dir::Etc::sourceparts=- \
+    -o APT::Get::List-Cleanup=0 &>/dev/null
+}
+
+# depot_candidat_futur : la version que choisirait apt si une 2.3 sortait
+# demain dans le dépôt interne (à côté des versions actuelles), avec les épinglages actuels. La simulation se
+# fait dans un dossier temporaire : la vraie configuration d'APT n'est pas touchée.
+depot_candidat_futur() {
+  local tmp opts
+  tmp=$(mktemp -d)
+  mkdir -p "$tmp/depot" "$tmp/lists/partial"
+  cp "$DEPOT"/*.deb "$tmp/depot/" 2>/dev/null || true   # les versions actuelles, plus la 2.3
+  DEPOT=$tmp/depot depot_paquet 2.3
+  DEPOT=$tmp/depot depot_index
+  printf 'Types: deb\nURIs: file:%s\nSuites: ./\nTrusted: yes\n' "$tmp/depot" > "$tmp/futur.sources"
+  opts=(-o Dir::Etc::sourcelist="$tmp/futur.sources" -o Dir::Etc::sourceparts=-
+        -o Dir::State::Lists="$tmp/lists" -o Dir::Cache::pkgcache= -o Dir::Cache::srcpkgcache=)
+  apt-get update -qq "${opts[@]}" &>/dev/null || true
+  LC_ALL=C apt-cache policy "${opts[@]}" facturation-agent 2>/dev/null | awk '/Candidate:/ {print $2}'
+  rm -rf "$tmp"
 }
 
 # depot_version_installee : version installée de facturation-agent (vide sinon).

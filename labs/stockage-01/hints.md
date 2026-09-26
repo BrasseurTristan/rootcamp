@@ -25,5 +25,6 @@ Tu obtiens le PID du processus. Quel service est-ce ?
 
     systemctl status <PID>
 
-L'export est terminé depuis longtemps : on peut l'arrêter (ou le
-redémarrer) proprement, ce qui libère le fichier.
+L'export est terminé depuis longtemps : on peut l'arrêter proprement,
+ce qui libère le fichier. (Le redémarrer relancerait l'export… qui
+réécrirait aussitôt un gros journal !)

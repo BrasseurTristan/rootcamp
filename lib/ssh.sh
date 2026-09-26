@@ -6,6 +6,13 @@
 
 SSH_ETC=/etc/rootcamp/ssh
 
+# ssh_verifier_machine <machine> : arrête la vérification si la machine a
+# disparu (après un redémarrage de la VM, les netns n'existent plus).
+ssh_verifier_machine() {
+  ip netns list | grep -qw "$1" \
+    || rc_die "La machine $1 a disparu (la VM a-t-elle redémarré ?). Relance le lab avec 'rootcamp reset'."
+}
+
 # ssh_serveur <machine> <ip du serveur> <ip de la machine>
 # (Re)crée la machine et la configuration de son serveur SSH :
 #   configuration  $SSH_ETC/<machine>/sshd_config (+ sshd_config.d/*.conf)

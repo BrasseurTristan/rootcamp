@@ -20,5 +20,7 @@ consulté !
     grep db.interne /etc/hosts
     sudo nano /etc/hosts
 
-Supprime (ou corrige) la vieille ligne de db.interne. Attention à ne
-pas toucher aux autres lignes, notamment celle de localhost.
+Corrige la vieille ligne de db.interne avec l'adresse du nouveau
+serveur (10.20.0.2). La supprimer ne suffirait pas ici : le DNS du lab
+ne connaît pas db.interne. Attention à ne pas toucher aux autres
+lignes, notamment celle de localhost.

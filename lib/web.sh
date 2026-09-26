@@ -1,10 +1,15 @@
 # shellcheck shell=bash
 # Aides pour les labs nginx du module 09.
 
-# web_site <nom> : active le site /etc/nginx/sites-available/<nom> et désactive
-# les autres sites des labs (et la page par défaut de Debian).
+# web_sites_desactiver : désactive tous les sites nginx (ceux des labs, la page
+# par défaut de Debian, et ceux que tu as pu créer toi-même).
+web_sites_desactiver() {
+  find /etc/nginx/sites-enabled -mindepth 1 -delete 2>/dev/null || true
+}
+
+# web_site <nom> : active le site /etc/nginx/sites-available/<nom>, et lui seul.
 web_site() {
-  rm -f /etc/nginx/sites-enabled/{default,compta,appli,compta-tls,carnet}
+  web_sites_desactiver
   ln -sf "/etc/nginx/sites-available/$1" "/etc/nginx/sites-enabled/$1"
   nginx -t -q
   systemctl enable nginx &>/dev/null || true
@@ -12,12 +17,27 @@ web_site() {
   systemctl restart nginx
 }
 
-# web_hosts <nom> : fait pointer <nom> vers 127.0.0.1 dans /etc/hosts (écriture
-# « en place » : /etc/hosts peut être un point de montage dans un conteneur).
-web_hosts() {
+# web_hosts_retirer <nom> : retire <nom> de /etc/hosts. Seul le nom est retiré
+# d'une ligne qui en contient d'autres (« 127.0.0.1 localhost <nom> » garde
+# localhost). Écriture « en place » : /etc/hosts peut être un point de montage
+# dans un conteneur.
+web_hosts_retirer() {
   local hosts
-  hosts=$(grep -vw "$1" /etc/hosts)
-  printf '%s\n127.0.0.1       %s\n' "$hosts" "$1" > /etc/hosts
+  hosts=$(awk -v n="$1" '
+    /^[[:space:]]*#/ { print; next }
+    { found = 0; for (i = 2; i <= NF; i++) if ($i == n) found = 1 }
+    !found { print; next }
+    { line = $1; k = 0
+      for (i = 2; i <= NF; i++) { if ($i ~ /^#/) break; if ($i != n) { line = line " " $i; k++ } }
+      if (k) print line }' /etc/hosts)
+  printf '%s\n' "$hosts" > /etc/hosts
+}
+
+# web_hosts <nom> [adresse] : fait pointer <nom> vers 127.0.0.1 (ou l'adresse
+# donnée) dans /etc/hosts.
+web_hosts() {
+  web_hosts_retirer "$1"
+  printf '%-15s %s\n' "${2:-127.0.0.1}" "$1" >> /etc/hosts
 }
 
 # web_code <url> [options curl] : code HTTP renvoyé (000 si pas de réponse).

@@ -24,24 +24,29 @@ else
   ko "le serveur démarrera même si ce disque est absent"
 fi
 
-# 2. Le montage via fstab fonctionne vraiment
-umount "$mp" 2>/dev/null || true
+# 2. Le montage via fstab fonctionne vraiment. On l'essaie dans un espace de
+# montage à part : ça marche même si /srv/archives est occupé (un terminal
+# ouvert dedans), sans rien démonter pour de vrai.
 systemctl daemon-reload
-if mount "$mp" 2>/dev/null; then
+res=$(unshare -m --propagation private sh -c \
+  'cd / && umount -l "$1" 2>/dev/null; mount "$1" && findmnt -rn -o SOURCE,FSTYPE --target "$1" | head -n1' \
+  _ "$mp" 2>/dev/null) || res=''
+read -r source_dev fs_actual <<<"$res"
+if [[ -n $res ]]; then
   ok "« mount $mp » fonctionne avec la configuration de /etc/fstab"
 else
   ko "« mount $mp » fonctionne avec la configuration de /etc/fstab"
 fi
+mountpoint -q "$mp" || mount "$mp" 2>/dev/null || true
 
-# 3. Ce qui est monté
-source_dev=$(findmnt -rn -o SOURCE --target "$mp" 2>/dev/null | head -n1)
+# 3. Ce que monte l'entrée de fstab
 parent=$(lsblk -no PKNAME "$source_dev" 2>/dev/null | head -n1)
-if mountpoint -q "$mp" && [[ /dev/$parent == "$disk" ]]; then
+if [[ -n $parent && /dev/$parent == "$disk" ]]; then
   ok "$mp est une partition du nouveau disque"
 else
   ko "$mp est une partition du nouveau disque"
 fi
-if [[ $(findmnt -rn -o FSTYPE "$mp" 2>/dev/null) == ext4 && $fstype == ext4 ]]; then
+if [[ $fs_actual == ext4 && $fstype == ext4 ]]; then
   ok "le système de fichiers est en ext4"
 else
   ko "le système de fichiers est en ext4"

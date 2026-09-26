@@ -7,9 +7,13 @@ source "$RC_LIB/lab.sh"
 # shellcheck source=../../lib/disques.sh
 source "$RC_LIB/disques.sh"
 
-umount -l /srv/bdd 2>/dev/null || true
+cd /
+disque_liberer /srv/bdd
 fstab_retirer /srv/bdd
 vgremove -ff -y vg_donnees &>/dev/null || true
+if vgs vg_donnees &>/dev/null; then
+  rc_die "Impossible de supprimer le groupe de volumes vg_donnees (un volume est encore utilisé ?). Pour voir : sudo lsblk ; sudo dmsetup info"
+fi
 disque_supprimer bdd1
 disque_supprimer bdd2
 d1=$(disque_creer bdd1 400M)

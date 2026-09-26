@@ -12,7 +12,12 @@ else
   ko "systemd a relu la dernière version de l'unité (as-tu oublié une commande après avoir modifié le fichier ?)"
 fi
 expect_ok "le service $svc est démarré" rc_retry 5 systemctl is-active --quiet "$svc"
-expect_ok "le service $svc démarrera automatiquement au prochain redémarrage" systemctl is-enabled --quiet "$svc"
+# « enabled-runtime » (systemctl enable --runtime) ne survit pas au redémarrage.
+if [[ $(systemctl is-enabled "$svc" 2>/dev/null) == enabled ]]; then
+  ok "le service $svc démarrera automatiquement au prochain redémarrage"
+else
+  ko "le service $svc démarrera automatiquement au prochain redémarrage"
+fi
 
 pid=$(systemctl show -p MainPID --value "$svc")
 if [[ $pid != 0 && $(stat -c %U "/proc/$pid" 2>/dev/null) == facturation ]]; then

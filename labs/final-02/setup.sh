@@ -40,8 +40,7 @@ for panne in "${pannes[@]}"; do
       sed -i 's/tcp dport { 22, 80, 443 } accept/tcp dport { 22, 80 } accept/' /etc/nftables.conf
       systemctl restart nftables ;;
     dns)          # une vieille entrée de /etc/hosts « restaurée »
-      hosts=$(grep -vw carnet.interne /etc/hosts)
-      printf '%s\n10.99.0.14      carnet.interne\n' "$hosts" > /etc/hosts ;;
+      web_hosts carnet.interne 10.99.0.14 ;;
   esac
 done
 # Comme après un redémarrage : les services relisent leur configuration.

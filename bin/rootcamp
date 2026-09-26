@@ -4,8 +4,15 @@ set -euo pipefail
 
 RC_HOME="${RC_HOME:-$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)}"
 RC_LABS="$RC_HOME/labs"
-RC_STATE="${RC_STATE:-$HOME/.rootcamp}"
 export RC_LIB="$RC_HOME/lib"
+
+# « sudo rootcamp … » ferait de root l'élève du lab (clés, dossier personnel,
+# progression dans /root). rootcamp demande lui-même sudo quand il le faut.
+if [[ $EUID -eq 0 && -n ${SUDO_USER:-} && $SUDO_USER != root && -z ${RC_STATE:-} ]]; then
+  echo "✗ Lance rootcamp sans sudo : il demande lui-même les droits root quand il en a besoin." >&2
+  exit 1
+fi
+RC_STATE="${RC_STATE:-$HOME/.rootcamp}"
 
 if [[ -t 1 ]]; then
   B=$'\e[1m' G=$'\e[32m' R=$'\e[31m' Y=$'\e[33m' D=$'\e[2m' N=$'\e[0m'
@@ -26,14 +33,14 @@ as_root() {
 }
 
 lab_dir() {
-  local d="$RC_LABS/$1"
-  [[ -n $1 && -f $d/lab.yaml ]] || die "Lab inconnu : '$1'. Tape 'rootcamp list' pour voir les labs."
+  local d="$RC_LABS/${1%/}"
+  [[ ${1%/} =~ ^[a-z0-9-]+$ && -f $d/lab.yaml ]] || die "Lab inconnu : '$1'. Tape 'rootcamp list' pour voir les labs."
   echo "$d"
 }
 
-# Lit une clé « cle: valeur » (format plat) dans lab.yaml.
+# Lit une clé « cle: valeur » (format plat, « # commentaire » possible) dans lab.yaml.
 lab_meta() {
-  sed -n "s/^$2:[[:space:]]*//p" "$1/lab.yaml" | head -n1 | sed 's/^"\(.*\)"$/\1/'
+  sed -En "s/[[:space:]]+#.*\$//; s/^$2:[[:space:]]*//p" "$1/lab.yaml" | head -n1 | sed 's/^"\(.*\)"$/\1/'
 }
 
 current_lab() { cat "$RC_STATE/current" 2>/dev/null || true; }
@@ -64,7 +71,7 @@ module_title() {
 cmd_list() {
   local d id mark current module last=''
   current=$(current_lab)
-  echo "${B}   $(pad LAB 18) $(pad NIVEAU 13) $(pad DURÉE 8) TITRE${N}"
+  echo "${B}   $(pad LAB 18) $(pad NIVEAU 14) $(pad DURÉE 8) TITRE${N}"
   while IFS=$'\t' read -r module id; do
     d="$RC_LABS/$id"
     if [[ $module != "$last" ]]; then
@@ -76,7 +83,7 @@ cmd_list() {
     elif [[ $id == "$current" ]]; then mark="${Y}▶${N}"
     else mark="${D}·${N}"
     fi
-    echo " $mark $(pad "$id" 18) $(pad "$(lab_meta "$d" level)" 13) $(pad "$(lab_meta "$d" duration)" 8) $(lab_meta "$d" title)"
+    echo " $mark $(pad "$id" 18) $(pad "$(lab_meta "$d" level)" 14) $(pad "$(lab_meta "$d" duration)" 8) $(lab_meta "$d" title)"
   done < <(for d in "$RC_LABS"/*/; do
              [[ -f $d/lab.yaml ]] && printf '%s\t%s\n' "$(lab_meta "$d" module)" "$(basename "$d")"
            done | sort)
@@ -105,14 +112,14 @@ ensure_packages() {
   done
   (( ${#missing[@]} )) || return 0
   info "Installation des paquets nécessaires : ${missing[*]}"
-  as_root apt-get update -qq
+  as_root apt-get update -qq || echo "${Y}!${N} « apt-get update » a signalé des erreurs, on tente quand même."
   as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "${missing[@]}" >/dev/null \
     || die "Impossible d'installer ${missing[*]}. La VM a-t-elle accès à Internet ?"
 }
 
 cmd_start() {
   local lab d
-  lab=${1:-}
+  lab=${1%/}
   d=$(lab_dir "$lab")
   mkdir -p "$RC_STATE"
   ensure_packages "$d"

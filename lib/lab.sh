@@ -24,35 +24,62 @@ rc_user() {
   local u=$1
   if id "$u" &>/dev/null; then
     _rc_owned "user:$u" || rc_die "L'utilisateur '$u' existe déjà et n'a pas été créé par rootcamp : je n'y touche pas."
-    local _
-    for _ in 1 2 3; do
-      rc_kill_user "$u"
-      userdel -r "$u" &>/dev/null && break
-      sleep 0.5
-    done
-    if id "$u" &>/dev/null; then userdel "$u"; fi
+    rc_supprimer_user "$u"
+  fi
+  if _rc_owned "user:$u"; then
+    # Son groupe personnel survit à userdel s'il a d'autres membres, et
+    # userdel -r n'efface pas un dossier personnel qui ne lui appartient plus.
+    if getent group "$u" >/dev/null; then
+      groupdel -f "$u" || rc_die "Impossible de supprimer le groupe '$u'."
+    fi
+    rm -rf "/home/${u:?}" "/var/mail/${u:?}"
   fi
   useradd -m -s /bin/bash "$u"
   _rc_own "user:$u"
 }
 
-# rc_kill_user <nom> : tue tous les processus d'un utilisateur. On compare les
-# UID réel, effectif et sauvegardé (/proc/<pid>/status) : un « sudo » lancé par
-# l'utilisateur appartient à root mais compte pour userdel. On recommence tant
-# qu'il en reste : un processus peut en lancer un autre pendant le ménage.
-rc_kill_user() {
-  local uid p found uids _
+# rc_supprimer_user <nom> : arrête les processus d'un utilisateur puis le
+# supprime (sans son dossier personnel). On vérifie qu'il a bien disparu :
+# userdel échoue tant qu'un processus de l'utilisateur n'est pas terminé.
+rc_supprimer_user() {
+  local u=$1 _
+  for _ in 1 2 3 4 5; do
+    rc_kill_user "$u"
+    userdel "$u" &>/dev/null || true
+    id "$u" &>/dev/null || return 0
+    sleep 0.5
+  done
+  rc_die "Impossible de supprimer l'utilisateur '$u' : des processus l'utilisent encore ($(rc_user_pids "$u" | tr '\n' ' '))."
+}
+
+# rc_user_pids <nom> : PID des processus de l'utilisateur. On compare les UID
+# réel, effectif et sauvegardé (/proc/<pid>/status) : un « sudo » lancé par
+# l'utilisateur appartient à root mais compte pour userdel.
+rc_user_pids() {
+  local uid p k r e s _
   uid=$(id -u "$1" 2>/dev/null) || return 0
-  systemctl stop "user@$uid.service" &>/dev/null || true   # l'instance systemd --user
+  for p in /proc/[0-9]*; do
+    while read -r k r e s _; do
+      [[ $k == Uid: ]] || continue
+      if [[ $r == "$uid" || $e == "$uid" || $s == "$uid" ]]; then echo "${p#/proc/}"; fi
+      break
+    done < "$p/status" 2>/dev/null
+  done
+  return 0
+}
+
+# rc_kill_user <nom> : tue tous les processus d'un utilisateur et attend
+# qu'ils aient disparu (un processus peut en lancer un autre pendant le ménage).
+rc_kill_user() {
+  local uid pids _
+  uid=$(id -u "$1" 2>/dev/null) || return 0
+  systemctl kill --signal=KILL "user@$uid.service" &>/dev/null || true   # l'instance systemd --user
+  systemctl stop "user@$uid.service" &>/dev/null || true
   for _ in 1 2 3 4 5 6 7 8 9 10; do
-    found=0
-    for p in /proc/[0-9]*; do
-      uids=$(awk '/^Uid:/ {print $2, $3, $4}' "$p/status" 2>/dev/null) || continue
-      if [[ " $uids " == *" $uid "* ]]; then
-        kill -KILL "${p#/proc/}" 2>/dev/null && found=1
-      fi
-    done
-    (( found )) || return 0
+    pids=$(rc_user_pids "$1")
+    [[ -n $pids ]] || return 0
+    # shellcheck disable=SC2086
+    kill -KILL $pids 2>/dev/null || true
     sleep 0.2
   done
 }
@@ -97,14 +124,19 @@ rc_result() { exit "$RC_FAILED"; }
 # rc_home : dossier personnel de la personne qui fait le lab.
 rc_home() { getent passwd "$RC_USER" | cut -d: -f6; }
 
-# rc_pids <texte> : PID des processus dont la ligne de commande contient <texte>
-# (comme « pgrep -f », sans dépendre de procps).
+# rc_pids <programme> : PID des processus qui exécutent ce programme (chemin
+# complet), directement ou via un interpréteur (« sh /opt/outils/script »).
+# Un « less /opt/outils/script » ouvert à côté ne compte pas.
 rc_pids() {
-  local p cmd
+  local p argv
   for p in /proc/[0-9]*; do
     [[ ${p#/proc/} == "$$" || ${p#/proc/} == "$BASHPID" ]] && continue
-    cmd=$(tr '\0' ' ' < "$p/cmdline" 2>/dev/null) || continue
-    [[ $cmd == *"$1"* ]] && echo "${p#/proc/}"
+    mapfile -d '' -t argv < "$p/cmdline" 2>/dev/null || continue
+    (( ${#argv[@]} )) || continue
+    if [[ ${argv[0]} == "$1" ]] \
+       || [[ ${argv[0]##*/} =~ ^(sh|dash|bash|python3?)$ && ${argv[1]:-} == "$1" ]]; then
+      echo "${p#/proc/}"
+    fi
   done
   return 0
 }

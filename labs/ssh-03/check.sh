@@ -5,6 +5,8 @@ source "$RC_LIB/lab.sh"
 # shellcheck source=../../lib/ssh.sh
 source "$RC_LIB/ssh.sh"
 
+ssh_verifier_machine srv-bdd
+
 jeton=$(cat /var/lib/rootcamp/ssh-03.jeton 2>/dev/null) || rc_die "État du lab introuvable. Relance-le avec 'rootcamp reset'."
 
 # 1. L'alias
