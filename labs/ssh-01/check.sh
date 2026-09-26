@@ -5,6 +5,8 @@ source "$RC_LIB/lab.sh"
 # shellcheck source=../../lib/ssh.sh
 source "$RC_LIB/ssh.sh"
 
+ssh_verifier_machine srv-web
+
 key="$(rc_home)/.ssh/cle_deploy"
 [[ -f $key ]] || rc_die "La clé $key a disparu ! Relance le lab avec 'rootcamp reset'."
 id deploy &>/dev/null || rc_die "L'utilisateur deploy a disparu ! Relance le lab avec 'rootcamp reset'."

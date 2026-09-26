@@ -15,5 +15,4 @@ carnet_nettoyer
 carnet_ca
 carnet_appli
 carnet_environnement
-rm -f /etc/nginx/sites-enabled/{default,compta,appli,compta-tls}
 systemctl reload nginx &>/dev/null || true

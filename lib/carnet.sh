@@ -94,7 +94,8 @@ carnet_nettoyer() {
   # Le groupe survit à userdel s'il a d'autres membres (« usermod -aG carnet … »).
   if getent group carnet >/dev/null; then groupdel -f carnet; fi
   rm -rf /var/lib/carnet /etc/ssl/carnet /opt/carnet /etc/carnet
-  rm -f /etc/nginx/sites-enabled/carnet /etc/nginx/sites-available/carnet
+  rm -f /etc/nginx/sites-available/carnet
+  web_sites_desactiver
   reseau_parefeu_ouvert
   systemctl disable nftables &>/dev/null || true
 }

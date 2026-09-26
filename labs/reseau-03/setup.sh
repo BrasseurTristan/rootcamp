@@ -15,8 +15,7 @@ reseau_machine srv-bdd 10.20.0.1 10.20.0.2 non
 reseau_service rc-bdd ip netns exec srv-bdd nc -lk 5432
 
 # Aucun routage, ni maintenant ni au prochain démarrage.
-sed -i '/net\.ipv4\.ip_forward/d' /etc/sysctl.conf 2>/dev/null || true
-for f in /etc/sysctl.d/*.conf; do
-  [[ -f $f ]] && sed -i '/net\.ipv4\.ip_forward/d' "$f"
+for f in /etc/sysctl.conf /etc/sysctl.d/*.conf /run/sysctl.d/*.conf /usr/local/lib/sysctl.d/*.conf; do
+  if [[ -f $f ]]; then sed -i -E '/net[./]ipv4[./](ip_forward|conf[./]all[./]forwarding)/d' "$f"; fi
 done
 sysctl -q -w net.ipv4.ip_forward=0
