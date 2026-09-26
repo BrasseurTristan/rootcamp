@@ -1,0 +1,2 @@
+# Les scripts tournent dans la VM Linux : fins de ligne LF même depuis un clone Windows.
+* text=auto eol=lf

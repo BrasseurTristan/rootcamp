@@ -1,0 +1,222 @@
+#!/usr/bin/env bash
+# rootcamp — lance les labs, donne des indices et vérifie tes solutions.
+set -euo pipefail
+
+RC_HOME="${RC_HOME:-$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)}"
+RC_LABS="$RC_HOME/labs"
+RC_STATE="${RC_STATE:-$HOME/.rootcamp}"
+export RC_LIB="$RC_HOME/lib"
+
+if [[ -t 1 ]]; then
+  B=$'\e[1m' G=$'\e[32m' R=$'\e[31m' Y=$'\e[33m' D=$'\e[2m' N=$'\e[0m'
+else
+  B='' G='' R='' Y='' D='' N=''
+fi
+
+die()  { echo "${R}✗${N} $*" >&2; exit 1; }
+info() { echo "${B}==>${N} $*"; }
+
+# Les scripts de lab tournent en root ; RC_USER indique qui fait le lab.
+as_root() {
+  if [[ $EUID -eq 0 ]]; then
+    env RC_USER="$(id -un)" RC_LIB="$RC_LIB" "$@"
+  else
+    sudo env RC_USER="$(id -un)" RC_LIB="$RC_LIB" "$@"
+  fi
+}
+
+lab_dir() {
+  local d="$RC_LABS/$1"
+  [[ -n $1 && -f $d/lab.yaml ]] || die "Lab inconnu : '$1'. Tape 'rootcamp list' pour voir les labs."
+  echo "$d"
+}
+
+# Lit une clé « cle: valeur » (format plat) dans lab.yaml.
+lab_meta() {
+  sed -n "s/^$2:[[:space:]]*//p" "$1/lab.yaml" | head -n1 | sed 's/^"\(.*\)"$/\1/'
+}
+
+current_lab() { cat "$RC_STATE/current" 2>/dev/null || true; }
+
+require_current() {
+  local lab
+  lab=$(current_lab)
+  [[ -n $lab ]] || die "Aucun lab en cours. Lance-en un avec 'rootcamp start <lab>'."
+  echo "$lab"
+}
+
+is_done() { grep -qxF "$1" "$RC_STATE/done" 2>/dev/null; }
+
+# hints.md : un indice par section, sections séparées par une ligne « --- ».
+hint_count() { awk 'BEGIN{n=1} /^---[[:space:]]*$/{n++} END{print n}' "$1/hints.md"; }
+hint_text()  { awk -v k="$2" 'BEGIN{n=1} /^---[[:space:]]*$/{n++; next} n==k' "$1/hints.md"; }
+
+# pad <texte> <largeur> : comme printf %-Ns, mais compte les caractères accentués comme un seul.
+pad() { printf '%s%*s' "$1" $(( $2 - ${#1} > 0 ? $2 - ${#1} : 0 )) ''; }
+
+# module_title <module> : titre lisible du module, tiré de labs/modules.txt.
+module_title() {
+  local title
+  title=$(sed -n "s/^$1|//p" "$RC_LABS/modules.txt" 2>/dev/null)
+  echo "${title:-$1}"
+}
+
+cmd_list() {
+  local d id mark current module last=''
+  current=$(current_lab)
+  echo "${B}   $(pad LAB 18) $(pad NIVEAU 13) $(pad DURÉE 8) TITRE${N}"
+  while IFS=$'\t' read -r module id; do
+    d="$RC_LABS/$id"
+    if [[ $module != "$last" ]]; then
+      echo
+      echo "${B}$(module_title "$module")${N}"
+      last=$module
+    fi
+    if is_done "$id"; then mark="${G}✓${N}"
+    elif [[ $id == "$current" ]]; then mark="${Y}▶${N}"
+    else mark="${D}·${N}"
+    fi
+    echo " $mark $(pad "$id" 18) $(pad "$(lab_meta "$d" level)" 13) $(pad "$(lab_meta "$d" duration)" 8) $(lab_meta "$d" title)"
+  done < <(for d in "$RC_LABS"/*/; do
+             [[ -f $d/lab.yaml ]] && printf '%s\t%s\n' "$(lab_meta "$d" module)" "$(basename "$d")"
+           done | sort)
+  echo
+  echo "${D}✓ terminé   ▶ en cours${N}"
+}
+
+cmd_mission() {
+  local lab d
+  lab=${1:-$(require_current)}
+  d=$(lab_dir "$lab")
+  echo
+  echo "${B}[$lab] $(lab_meta "$d" title)${N}  ${D}niveau $(lab_meta "$d" level) · $(lab_meta "$d" duration)${N}"
+  echo
+  cat "$d/mission.md"
+  echo
+  echo "${D}rootcamp hint    un indice si tu bloques${N}"
+  echo "${D}rootcamp check   vérifier ta solution${N}"
+}
+
+# Installe les paquets listés dans le champ « packages » de lab.yaml s'il en manque.
+ensure_packages() {
+  local p missing=()
+  for p in $(lab_meta "$1" packages); do
+    dpkg-query -W -f='${Status}' "$p" 2>/dev/null | grep -q "install ok installed" || missing+=("$p")
+  done
+  (( ${#missing[@]} )) || return 0
+  info "Installation des paquets nécessaires : ${missing[*]}"
+  as_root apt-get update -qq
+  as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "${missing[@]}" >/dev/null \
+    || die "Impossible d'installer ${missing[*]}. La VM a-t-elle accès à Internet ?"
+}
+
+cmd_start() {
+  local lab d
+  lab=${1:-}
+  d=$(lab_dir "$lab")
+  mkdir -p "$RC_STATE"
+  ensure_packages "$d"
+  info "Préparation du lab $lab…"
+  as_root bash "$d/setup.sh" || die "La préparation du lab a échoué."
+  echo "$lab" > "$RC_STATE/current"
+  echo 0 > "$RC_STATE/hints.$lab"
+  cmd_mission "$lab"
+}
+
+cmd_reset() {
+  local lab
+  lab=$(require_current)
+  info "Remise à zéro du lab $lab…"
+  as_root bash "$(lab_dir "$lab")/setup.sh" || die "La remise à zéro a échoué."
+  echo "${G}✓${N} Le lab est revenu à son état de départ."
+}
+
+cmd_hint() {
+  local lab d total shown
+  lab=$(require_current)
+  d=$(lab_dir "$lab")
+  total=$(hint_count "$d")
+  shown=$(cat "$RC_STATE/hints.$lab" 2>/dev/null || echo 0)
+  if (( shown >= total )); then
+    echo "${D}C'était le dernier indice. Le voici à nouveau :${N}"
+    shown=$total
+  else
+    shown=$(( shown + 1 ))
+    echo "$shown" > "$RC_STATE/hints.$lab"
+  fi
+  echo
+  echo "${Y}Indice $shown/$total${N}"
+  hint_text "$d" "$shown"
+}
+
+cmd_check() {
+  local lab d
+  lab=$(require_current)
+  d=$(lab_dir "$lab")
+  info "Vérification du lab $lab…"
+  echo
+  if as_root bash "$d/check.sh"; then
+    echo
+    echo "${G}${B}Bravo, lab réussi !${N}"
+    is_done "$lab" || echo "$lab" >> "$RC_STATE/done"
+    echo
+    cmd_debrief
+  else
+    echo
+    echo "${R}Pas encore.${N} Corrige les points en rouge puis relance 'rootcamp check'."
+    echo "${D}Bloqué ? 'rootcamp hint'. Tout cassé ? 'rootcamp reset'.${N}"
+    return 1
+  fi
+}
+
+cmd_debrief() {
+  local lab d
+  lab=$(require_current)
+  d=$(lab_dir "$lab")
+  if ! is_done "$lab" && [[ ${1:-} != --spoiler ]]; then
+    die "Termine d'abord le lab. (Pour tricher : 'rootcamp debrief --spoiler'.)"
+  fi
+  echo "${B}── Débrief ──${N}"
+  echo
+  cat "$d/debrief.md"
+}
+
+cmd_update() {
+  if [[ -L /opt/rootcamp && $(readlink -f /opt/rootcamp) == /vagrant ]]; then
+    echo "rootcamp utilise le dossier du dépôt partagé par Vagrant."
+    echo "Fais 'git pull' dans le dépôt sur ta machine, c'est tout."
+    return
+  fi
+  [[ -d $RC_HOME/.git ]] || die "$RC_HOME n'est pas un dépôt git, impossible de mettre à jour."
+  as_root git -C "$RC_HOME" pull --ff-only
+}
+
+cmd_help() {
+  cat <<EOF
+${B}rootcamp${N} — apprendre Linux en réparant des serveurs cassés
+
+${B}Commandes${N}
+  list              liste les labs et ta progression
+  start <lab>       prépare un lab (et casse la machine !)
+  mission           réaffiche l'énoncé du lab en cours
+  hint              affiche l'indice suivant
+  check             vérifie ta solution
+  debrief           explique ce qui se passait (une fois le lab réussi)
+  reset             remet le lab en cours à son état de départ
+  update            met rootcamp à jour
+  help              affiche cette aide
+EOF
+}
+
+case ${1:-help} in
+  list|ls)        cmd_list ;;
+  start)          cmd_start "${2:-}" ;;
+  mission)        cmd_mission "${2:-}" ;;
+  hint)           cmd_hint ;;
+  check)          cmd_check ;;
+  debrief)        cmd_debrief "${2:-}" ;;
+  reset)          cmd_reset ;;
+  update)         cmd_update ;;
+  help|-h|--help) cmd_help ;;
+  *)              die "Commande inconnue : $1. Tape 'rootcamp help'." ;;
+esac
