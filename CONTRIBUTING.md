@@ -104,14 +104,19 @@ en rouge, elles indiquent quoi corriger sans donner la solution.
 ### Tests
 
 Chaque lab doit avoir une solution de référence dans
-`tests/solutions/<lab>.sh`, et idéalement des mauvaises solutions typiques dans
-`tests/solutions/<lab>.wrong-<nom>.sh` (par exemple un `chmod 777`).
+`tests/solutions/<lab>.sh`, et idéalement :
+
+- des mauvaises solutions typiques dans `tests/solutions/<lab>.wrong-<nom>.sh`
+  (par exemple un `chmod 777`), que le check doit refuser ;
+- d'autres solutions correctes dans `tests/solutions/<lab>.alt-<nom>.sh` (des
+  ACL au lieu d'un `chmod`, un drop-in au lieu d'un fichier complet…), que le
+  check doit accepter.
 
 La CI vérifie pour chaque lab que :
 
 1. le check échoue juste après le setup ;
 2. chaque mauvaise solution est refusée ;
-3. la solution de référence est acceptée ;
+3. la solution de référence et chaque autre solution sont acceptées ;
 4. un reset remet bien le lab dans son état cassé.
 
 Pour lancer les tests dans la VM Vagrant :

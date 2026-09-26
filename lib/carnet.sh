@@ -90,10 +90,9 @@ carnet_nettoyer() {
   systemctl reset-failed carnet &>/dev/null || true
   rm -rf /etc/systemd/system/carnet.service /etc/systemd/system/carnet.service.d
   systemctl daemon-reload
-  if id carnet &>/dev/null; then
-    rc_kill_user carnet
-    userdel carnet &>/dev/null || true
-  fi
+  if id carnet &>/dev/null; then rc_supprimer_user carnet; fi
+  # Le groupe survit à userdel s'il a d'autres membres (« usermod -aG carnet … »).
+  if getent group carnet >/dev/null; then groupdel -f carnet; fi
   rm -rf /var/lib/carnet /etc/ssl/carnet /opt/carnet /etc/carnet
   rm -f /etc/nginx/sites-enabled/carnet /etc/nginx/sites-available/carnet
   reseau_parefeu_ouvert
@@ -227,20 +226,26 @@ carnet_verifier() {
   fi
 
   # Le pare-feu, rechargé depuis sa configuration comme au démarrage
-  expect_ok "le pare-feu est valide et chargé au démarrage" \
-    sh -c 'nft -c -f /etc/nftables.conf && systemctl is-enabled --quiet nftables'
-  systemctl reset-failed nftables &>/dev/null || true
-  systemctl restart nftables &>/dev/null || true
+  local valide=0
+  if nft -c -f /etc/nftables.conf &>/dev/null; then valide=1; fi
+  if (( valide )) && systemctl is-enabled --quiet nftables; then
+    ok "le pare-feu est valide et chargé au démarrage"
+  else
+    ko "le pare-feu est valide et chargé au démarrage"
+  fi
+  # Testé sur une machine jetable avant d'être appliqué : une règle qui
+  # bloque SSH couperait ta connexion à la VM.
+  if (( valide )) && reseau_parefeu_laisse_ssh /etc/nftables.conf; then
+    ok "SSH (port 22) reste autorisé par le pare-feu, depuis n'importe quelle adresse"
+    systemctl reset-failed nftables &>/dev/null || true
+    systemctl restart nftables &>/dev/null || true
+  else
+    ko "SSH (port 22) reste autorisé par le pare-feu, depuis n'importe quelle adresse"
+    if (( valide )); then echo "    (pare-feu non rechargé : il t'aurait coupé l'accès à la VM)"; fi
+  fi
   local alice=(ip netns exec poste-alice)
   expect_ok "depuis le poste d'Alice, $CARNET_URL/ répond" \
     "${alice[@]}" curl -fsS --max-time 5 --cacert "$CARNET_CA" --resolve carnet.interne:443:10.10.0.1 -o /dev/null "$CARNET_URL/"
   expect_fail "depuis le poste d'Alice, les autres ports sont fermés (ex. 9090)" \
     "${alice[@]}" nc -z -w 2 10.10.0.1 9090
-  local rules
-  rules=$(nft list ruleset 2>/dev/null || true)
-  if grep -qE 'dport (22|ssh|\{[^}]*\b(22|ssh)\b[^}]*\}).*accept' <<<"$rules"; then
-    ok "SSH reste autorisé par le pare-feu"
-  else
-    ko "SSH reste autorisé par le pare-feu"
-  fi
 }
