@@ -16,11 +16,12 @@ if apt-mark showhold | grep -qx facturation-agent; then
 else
   ok "facturation-agent n'est plus bloqué (hold)"
 fi
-candidate=$(LC_ALL=C apt-cache policy facturation-agent | awk '/Candidate:/ {print $2}')
-if [[ $candidate == 2.2 ]]; then
+# Le vrai test : si la 2.3 sortait demain, apt la proposerait-il ?
+futur=$(depot_candidat_futur)
+if [[ $futur == 2.3 ]]; then
   ok "apt proposera les prochaines mises à jour de facturation-agent (aucun épinglage ne le retient)"
 else
-  ko "apt proposera les prochaines mises à jour de facturation-agent (candidat actuel : ${candidate:-aucun})"
+  ko "apt proposera les prochaines mises à jour de facturation-agent (si une 2.3 sortait, apt choisirait : ${futur:-rien})"
 fi
 
 rc_result

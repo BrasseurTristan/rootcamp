@@ -2,4 +2,4 @@ title: La commande disparue
 module: 04-paquets
 level: débutant
 duration: 15 min
-packages: gpg
+packages: gpg gpg-agent

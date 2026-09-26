@@ -24,8 +24,13 @@ if (( ${fs_mb:-0} >= 750 )); then
 else
   ko "le système de fichiers a été agrandi lui aussi (${fs_mb:-0} Mo)"
 fi
+# Le disque entier, ou une partition de ce disque, peut servir de volume physique.
 d2=$(disque_dev bdd2)
-if [[ -n $d2 ]] && [[ $(pvs --noheadings -o vg_name "$d2" 2>/dev/null | tr -d ' ') == vg_donnees ]]; then
+in_vg=no
+for dev in $( [[ -n $d2 ]] && lsblk -lnpo NAME "$d2" 2>/dev/null ); do
+  if [[ $(pvs --noheadings -o vg_name "$dev" 2>/dev/null | tr -d ' ') == vg_donnees ]]; then in_vg=yes; fi
+done
+if [[ $in_vg == yes ]]; then
   ok "le second disque fait partie du groupe de volumes vg_donnees"
 else
   ko "le second disque fait partie du groupe de volumes vg_donnees"

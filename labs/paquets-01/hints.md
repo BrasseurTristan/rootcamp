@@ -2,8 +2,9 @@ Lis attentivement ce que dit apt :
 
     sudo apt update
 
-Les lignes « Err » et « W: » / « E: » qui parlent du dépôt interne
-disent exactement ce qui ne va pas. Puis regarde comment le dépôt est
+Les lignes « Err », « Warning » et « Error » (« W: » et « E: » avec
+apt-get) qui parlent du dépôt interne disent exactement ce qui ne va
+pas. Puis regarde comment le dépôt est
 déclaré :
 
     ls /etc/apt/sources.list.d/

@@ -18,6 +18,14 @@ disque_creer() {
   losetup --find --show --partscan "$DISQUES/$nom.img"
 }
 
+# disque_liberer <point de montage> : démonte ce point de montage, et s'arrête
+# avec une explication s'il est encore utilisé (un terminal ouvert dedans…).
+disque_liberer() {
+  mountpoint -q "$1" || return 0
+  umount "$1" 2>/dev/null && return 0
+  rc_die "$1 est encore utilisé (un terminal ouvert dans ce dossier ?). Sors-en (« cd ~ ») puis relance. Pour voir qui l'utilise : sudo lsof $1"
+}
+
 # disque_supprimer <nom> : démonte tout ce qui vient du disque (partitions,
 # volumes LVM), supprime les groupes LVM qui l'utilisent, puis le détache.
 disque_supprimer() {
@@ -42,9 +50,10 @@ disque_supprimer() {
   rm -f "$DISQUES/$nom.img"
 }
 
-# fstab_retirer <point de montage> : supprime les lignes de /etc/fstab qui le concernent.
+# fstab_retirer <point de montage> : supprime les lignes de /etc/fstab qui le
+# concernent (écrit avec ou sans « / » final).
 fstab_retirer() {
-  awk -v mp="$1" '$0 ~ /^[[:space:]]*#/ || $2 != mp' /etc/fstab > /etc/fstab.rootcamp && mv /etc/fstab.rootcamp /etc/fstab
+  awk -v mp="$1" '$0 ~ /^[[:space:]]*#/ || ($2 != mp && $2 != mp "/")' /etc/fstab > /etc/fstab.rootcamp && mv /etc/fstab.rootcamp /etc/fstab
 }
 
 # Au démarrage, un service rattache les disques virtuels, comme si de vrais
